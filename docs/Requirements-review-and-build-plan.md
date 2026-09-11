@@ -4,6 +4,8 @@ Source: Livestock_Management_Dashboard_Agile_Discovery_Company_Review-1.pdf, nin
 
 ## Review conclusion
 
+**Current planning supplement:** See `Dashboard-reference-comparison.md` for the September 11 comparison with the supplied Herd Manager HTML and the implementation order incorporating later user decisions. Later user decisions override older rules below: sex and birth details are optional, with user-selected nonblocking flags; imports and multi-generation pedigrees now exist; Composite 4 project-assisted selection of similar ewes into flexible breeding groups is the next breeding extension. Ewes are not assigned permanent family groups; one ram may serve multiple groups in a year, with separate dates and histories. Earlier first-build coverage statements are historical, not current status.
+
 The document describes a substantial livestock records application, not just a dashboard. Its strongest design decision is the lifetime animal record, with dated events owning their historical year. The central dashboard should summarize those records rather than maintain separate totals. The 37 areas remain in scope; implementation order below reflects dependencies, not priorities inferred from section numbers. The document's statements about company approval describe its drafting process; the user's current request authorizes review, a proposed plan and starting implementation.
 
 This first build is a foundation to evaluate. It must not be described as completion of the full specification or as ready for sole reliance during farm operations.
@@ -117,3 +119,4 @@ Existing animal records now support Set pedigree. Sire/dam selection uses same-s
 ## Update: multi-generation pedigrees and unowned ancestors
 
 The Pedigree view now displays both paternal and maternal lines with three initial ancestor generations and per-branch expansion. Ancestor records can be created directly from a parent slot without ownership or farm-presence requirements. They store optional DOB/year, breed, breeder/farm, registry, registration number and source notes. Existing ancestor records can be reused in multiple branches. Pedigree-only records contribute to COI and parentage but do not count as flock animals or permit weight sessions. The original two migrations are unchanged; migration 0002 adds the record distinction and metadata. Existing animals retain their flock classification.
+

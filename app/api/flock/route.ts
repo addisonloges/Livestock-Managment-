@@ -24,6 +24,13 @@ export async function POST(req:Request){try{
   if(body.action==='edit'||body.action==='ancestor-edit'){
    if(typeof a.name!=='string'||typeof a.breed!=='string'||a.name.length>200||a.breed.length>200)throw Error('Name and breed must be 200 characters or fewer.');
    next.name=a.name.trim();next.breed=a.breed.trim();
+   if(body.action==='edit'){for(const field of ['rightTag','leftTag','eid'] as const){if(field in a){if(typeof a[field]!=='string'||a[field].length>200)throw Error('Identifiers must be text, up to 200 characters.');if(field==='eid')next.eid=a[field].trim()||null;else next[field]=a[field].trim();}}}
+   if(body.action==='edit'&&'info' in a){
+    if(!a.info||typeof a.info!=='object'||Array.isArray(a.info))throw Error('Invalid registration details.');
+    const info=JSON.parse(existing.pedigreeInfo||'{}');
+    for(const field of ['registry','registrationNumber','membershipId','flockNameId','farm','notes']){if(field in a.info){const value=a.info[field];if(typeof value!=='string'||value.length>(field==='notes'?2000:200))throw Error('Registration details or notes exceed the allowed length.');info[field]=value.trim();}}
+    next.pedigreeInfo=JSON.stringify(info);
+   }
    if(body.action==='edit'&&('sex' in a||'dob' in a||'birthYear' in a)){
     next.sex=a.sex??existing.sex;next.dob='dob' in a?(a.dob||null):existing.dob;
     next.birthYear=next.dob?Number(next.dob.slice(0,4)):'birthYear' in a?(a.birthYear??null):existing.birthYear;
@@ -58,7 +65,7 @@ export async function POST(req:Request){try{
   }else next.archivedAt=body.action==='archive'?now:null;
   const result=await db.batch([
    db.prepare('INSERT INTO animal_history (operationId,animalId,action,reason,before,after,createdAt) SELECT ?,?,?,?,?,?,? FROM animals WHERE id=? AND version=? AND (?=-1 OR (SELECT SUM(version) FROM animals)=?)').bind(operationId,id,body.action,reason,JSON.stringify(existing),JSON.stringify(next),now,id,a.version,graphVersion,graphVersion),
-   db.prepare('UPDATE animals SET archivedAt=?,name=?,breed=?,sire=?,dam=?,dob=?,birthYear=?,pedigreeInfo=?,sex=?,version=version+1 WHERE id=? AND version=? AND (?=-1 OR (SELECT SUM(version) FROM animals)=?)').bind(next.archivedAt||null,next.name,next.breed,next.sire,next.dam,next.dob,next.birthYear,next.pedigreeInfo||'{}',next.sex,id,a.version,graphVersion,graphVersion)
+   db.prepare('UPDATE animals SET archivedAt=?,name=?,breed=?,sire=?,dam=?,dob=?,birthYear=?,pedigreeInfo=?,sex=?,rightTag=?,leftTag=?,eid=?,version=version+1 WHERE id=? AND version=? AND (?=-1 OR (SELECT SUM(version) FROM animals)=?)').bind(next.archivedAt||null,next.name,next.breed,next.sire,next.dam,next.dob,next.birthYear,next.pedigreeInfo||'{}',next.sex,next.rightTag,next.leftTag,next.eid,id,a.version,graphVersion,graphVersion)
   ]);
   if(result[1].meta.changes!==1)return json({error:'This animal changed in another view. Reload before trying again.'},409);
  }else if(body.action==='ancestor'){
