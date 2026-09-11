@@ -30,6 +30,7 @@ export function parseCsv(text:string):string[][]{
 }
 export function normalizeImportRow(r:ImportRow):ImportRow{
  const n={...r};for(const k of importFields)n[k]=String(r[k]??'').trim();
+ if(!n.sex||['unknown','not known','n/a','?'].includes(n.sex.toLowerCase()))n.sex='Unknown';
  const sex=canonical(n.sex);n.sex=({f:'Female',female:'Female',ewe:'Female',doe:'Female',m:'Male',male:'Male',ram:'Male',buck:'Male',wether:'Castrated male',castratedmale:'Castrated male'} as Record<string,string>)[sex]||n.sex;
  n.species=({sheep:'Sheep',goat:'Goats',goats:'Goats'} as Record<string,string>)[canonical(n.species)]||n.species;
  n.origin=({purchased:'Purchased',bought:'Purchased',homeraised:'Home-raised',homebred:'Home-raised'} as Record<string,string>)[canonical(n.origin)]||n.origin;
@@ -44,7 +45,7 @@ export function prepareImport(input:ImportRow[],existing:Animal[],year:number){
   if(!r.recordKey||keys.has(r.recordKey))throw Error('Use a unique import key for each row.');keys.set(r.recordKey,r);
   if(!['Yes','No'].includes(r.pedigreeOnly))throw Error('Unowned ancestor must be Yes or No.');
   if(!r.name&&!r.rightTag&&!r.leftTag&&!r.eid)throw Error('Enter a name, tag or EID.');
-  if(r.pedigreeOnly==='Yes'&&(!r.name||!['Male','Female'].includes(r.sex)))throw Error('An unowned ancestor needs a name and Male or Female sex.');
+  if(r.pedigreeOnly==='Yes'&&(!r.name||!['Unknown','Male','Female'].includes(r.sex)))throw Error('An unowned ancestor needs a name; sex can be Unknown.');
   for(const k of importFields)if(r[k].length>(k==='notes'?2000:200))throw Error(`${fieldLabels[k]} is too long.`);
   const a={...r,dob:r.dob||null,birthYear:r.dob?Number(r.dob.slice(0,4)):r.birthYear?Number(r.birthYear):null,firstYear:Number(r.firstYear),pedigreeOnly:r.pedigreeOnly==='Yes'?1:0,sire:null,dam:null} as unknown as Animal;
   validateAnimal({...a,origin:a.pedigreeOnly?'Purchased':a.origin});if(a.firstYear>year)throw Error('First recorded year cannot be later than the selected year.');return a;

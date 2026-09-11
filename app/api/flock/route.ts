@@ -24,6 +24,16 @@ export async function POST(req:Request){try{
   if(body.action==='edit'||body.action==='ancestor-edit'){
    if(typeof a.name!=='string'||typeof a.breed!=='string'||a.name.length>200||a.breed.length>200)throw Error('Name and breed must be 200 characters or fewer.');
    next.name=a.name.trim();next.breed=a.breed.trim();
+   if(body.action==='edit'&&('sex' in a||'dob' in a||'birthYear' in a)){
+    next.sex=a.sex??existing.sex;next.dob='dob' in a?(a.dob||null):existing.dob;
+    next.birthYear=next.dob?Number(next.dob.slice(0,4)):'birthYear' in a?(a.birthYear??null):existing.birthYear;
+    validateAnimal({...next,origin:next.pedigreeOnly?'Purchased':next.origin});
+    const {results}=await db.prepare('SELECT * FROM animals').all<Animal>();graphVersion=results.reduce((sum,p)=>sum+p.version,0);
+    for(const child of results.filter(p=>p.sire===id||p.dam===id)){if((child.sire===id&&next.sex!=='Male')||(child.dam===id&&next.sex!=='Female'))throw Error('This animal is already linked as a parent. Correct those links before changing its sex.');validateParentDates(child,next)}
+    for(const parent of results.filter(p=>p.id===next.sire||p.id===next.dam))validateParentDates(next,parent);
+    const weight=await db.prepare('SELECT date FROM weights WHERE animalId=? ORDER BY date LIMIT 1').bind(id).first<{date:string}>();
+    if(weight&&next.dob&&weight.date<next.dob)throw Error('Birth date cannot be after an existing weight record.');
+   }
    if(body.action==='ancestor-edit'){
     if(!existing.pedigreeOnly)throw Error('This action only edits pedigree-only records.');
     if(!next.name)throw Error('Enter an ancestor name or identifying label.');
@@ -48,7 +58,7 @@ export async function POST(req:Request){try{
   }else next.archivedAt=body.action==='archive'?now:null;
   const result=await db.batch([
    db.prepare('INSERT INTO animal_history (operationId,animalId,action,reason,before,after,createdAt) SELECT ?,?,?,?,?,?,? FROM animals WHERE id=? AND version=? AND (?=-1 OR (SELECT SUM(version) FROM animals)=?)').bind(operationId,id,body.action,reason,JSON.stringify(existing),JSON.stringify(next),now,id,a.version,graphVersion,graphVersion),
-   db.prepare('UPDATE animals SET archivedAt=?,name=?,breed=?,sire=?,dam=?,dob=?,birthYear=?,pedigreeInfo=?,version=version+1 WHERE id=? AND version=? AND (?=-1 OR (SELECT SUM(version) FROM animals)=?)').bind(next.archivedAt||null,next.name,next.breed,next.sire,next.dam,next.dob,next.birthYear,next.pedigreeInfo||'{}',id,a.version,graphVersion,graphVersion)
+   db.prepare('UPDATE animals SET archivedAt=?,name=?,breed=?,sire=?,dam=?,dob=?,birthYear=?,pedigreeInfo=?,sex=?,version=version+1 WHERE id=? AND version=? AND (?=-1 OR (SELECT SUM(version) FROM animals)=?)').bind(next.archivedAt||null,next.name,next.breed,next.sire,next.dam,next.dob,next.birthYear,next.pedigreeInfo||'{}',next.sex,id,a.version,graphVersion,graphVersion)
   ]);
   if(result[1].meta.changes!==1)return json({error:'This animal changed in another view. Reload before trying again.'},409);
  }else if(body.action==='ancestor'){

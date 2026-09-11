@@ -66,3 +66,5 @@ Import animals accepts CSV and Excel `.xlsx` files with column mapping, workshee
 PDF-assisted import renders pages locally and displays extracted text. The user can draft a record from explicitly labeled text, then review or enter remaining fields. Scanned PDFs and graphical pedigrees require manual transcription and parent mapping; OCR and automatic tree recognition are not implemented. Source filename/page is retained in notes, not the original file. Legacy `.xls` files must be saved as `.xlsx` or CSV first.
 
 Set pedigree in an animal profile now opens the full pedigree workspace, including the unowned-parent entry flow and prefilled change reason.
+
+Incomplete animal records can be imported with sex Unknown and no birth information, including home-raised animals. Animal details can be filled in later via Edit animal details. Missing-sex and missing-birth flags are optional checkboxes, both disabled by default, remembered per device. Unknown-sex animals are not counted as males or offered as breeding parents. Supplied invalid dates, duplicates and contradictory parent links still require correction.

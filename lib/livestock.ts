@@ -8,9 +8,8 @@ export function adg(weights:{date:string;pounds:number}[]){const w=[...weights].
 export function validDate(x:string){return /^\d{4}-\d{2}-\d{2}$/.test(x)&&!Number.isNaN(Date.parse(x))&&new Date(x).toISOString().slice(0,10)===x}
 export function validateAnimal(a:any){
  if(!['Sheep','Goats'].includes(a.species))throw Error('Choose Sheep or Goats.');
- if(!['Female','Male','Castrated male'].includes(a.sex))throw Error('Sex is required.');
+ if(!['Unknown','Female','Male','Castrated male'].includes(a.sex))throw Error('Choose a valid sex or Unknown.');
  if(!['Home-raised','Purchased'].includes(a.origin))throw Error('Choose an origin.');
- if(a.origin==='Home-raised'&&!a.dob)throw Error('Home-raised animals require a full date of birth.');
  if(a.dob&&(!validDate(a.dob)||a.dob>new Date().toISOString().slice(0,10)))throw Error('Enter a valid birth date that is not in the future.');
  if(a.birthYear!==null&&a.birthYear!==undefined&&(!Number.isInteger(a.birthYear)||a.birthYear<1900||a.birthYear>new Date().getFullYear()))throw Error('Enter a valid birth year.');
  if(!Number.isInteger(a.firstYear)||a.firstYear<1900||a.firstYear>new Date().getFullYear())throw Error('Enter a valid first recorded year.');

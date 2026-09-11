@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {recordFlags} from '../lib/record-flags.ts';
 import assert from 'node:assert/strict';
 import {blankImportRow,parseCsv,normalizeImportRow,prepareImport,mapImportRows} from '../lib/animal-import.ts';
 const row=(key:string,name=key)=>({...blankImportRow('Sheep','2026',key),name,sex:'Female'});
@@ -30,5 +31,7 @@ test('cycles and impossible parent ages are rejected',()=>{
 });
 test('recognizes common sex and species labels without assigning missing sex',()=>{
  assert.equal(normalizeImportRow({...row('x'),sex:'ewe',species:'goat'}).species,'Goats');
- assert.match(prepareImport([{...row('x'),sex:''}],[],2026).errors.join(),/Sex is required/);
+ const incomplete=prepareImport([{...row('x'),sex:'',origin:'Home-raised'}],[],2026);assert.deepEqual(incomplete.errors,[]);assert.equal(incomplete.animals[0].sex,'Unknown');assert.equal(incomplete.animals[0].dob,null);
 });
+
+test('missing detail flags follow only enabled rules and accept a known birth year',()=>{assert.deepEqual(recordFlags({sex:'Unknown',dob:null,birthYear:null},{sex:true,birth:false}),['Sex unknown']);assert.deepEqual(recordFlags({sex:'Unknown',dob:null,birthYear:2020},{sex:false,birth:true}),[])});
