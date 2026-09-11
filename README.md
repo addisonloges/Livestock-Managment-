@@ -7,7 +7,8 @@ A working foundation for the livestock management application described in [the 
 - Separate Sheep/Goats views, historic first-recorded years and read-only All Years.
 - Durable animal records, current tags/EID, optional breed and recorded sire/dam.
 - Manual weights with original units, pounds conversion and actual ADG.
-- Prospective offspring COI calculated from recorded ancestry, with incomplete-pedigree disclosure.
+- Multi-generation paternal and maternal pedigree entry, including unowned ancestors with optional birth, farm, registry and source information.
+- Prospective offspring COI calculated from all recorded ancestry, including pedigree-only ancestors, with incomplete-pedigree disclosure.
 - Animal CSV and foundation JSON exports.
 
 This is not the completed 37-area specification. Saved breeding groups, identifier/status history, imports, health, feed, finances, offline sync, scheduled backups and restore remain planned. See the review for every requirement and the disclosed one-database species-partitioning proposal.
@@ -28,6 +29,7 @@ The first database setup requires the generated migration. After building:
 ```sh
 node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_groovy_franklin_richards.sql
 node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0001_lumpy_tarantula.sql
+node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0002_thick_spiral.sql
 npm run dev
 ```
 
@@ -49,4 +51,10 @@ Local integration checks also exercised animal persistence across reload, kilogr
 
 ## Current data-entry constraints
 
-Animals can be deleted into a restorable archive. Name and breed-description edits, deletion and restore keep a reason and before/after history. Tags, EIDs and parentage editing are still planned. One weight per animal per date is supported. Unknown ancestors are assumed unrelated for the displayed known-pedigree estimate; zero COI is not proof of unrelatedness. The build is online-only.
+Animals can be deleted into a restorable archive. Name and breed-description edits, deletion and restore keep a reason and before/after history. Tags and EIDs editing/history are still planned. Parentage can be edited from the Pedigree view. One weight per animal per date is supported. Unknown ancestors are assumed unrelated for the displayed known-pedigree estimate; zero COI is not proof of unrelatedness. The build is online-only.
+
+## Entering ancestors you do not own
+
+Open Pedigree, choose a flock animal, and use Add sire or Add dam in either line. Select an existing record or Enter unowned ancestor. Name/identifying label is required; exact birth date, year, breed, breeder/farm, registry, registration number and notes/source are optional. Three ancestor generations are displayed initially; expand a branch or focus an ancestor to enter earlier generations. An ancestor is one shared record even when it appears in multiple places.
+
+Pedigree-only records are excluded from flock counts, breeding candidate lists and weight entry, but remain in parent pickers, global search, JSON exports and COI calculations. They can be edited and archived/restored with history. Existing flock records remain flock records; this release does not automatically reinterpret them as unowned.

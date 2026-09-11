@@ -1,5 +1,5 @@
 export type Ancestor={id:string;sire:string|null;dam:string|null};
-export type Animal=Ancestor & {archivedAt?:string|null;seq:number;species:string;name:string;rightTag:string;leftTag:string;eid:string|null;sex:string;origin:string;dob:string|null;birthYear:number|null;firstYear:number;breed:string;status:string;createdAt:string;version:number};
+export type Animal=Ancestor & {pedigreeOnly?:number;pedigreeInfo?:string;archivedAt?:string|null;seq:number;species:string;name:string;rightTag:string;leftTag:string;eid:string|null;sex:string;origin:string;dob:string|null;birthYear:number|null;firstYear:number;breed:string;status:string;createdAt:string;version:number};
 export type Weight={id:string;animalId:string;date:string;pounds:number;originalValue:number;unit:string;session:string};
 export function displayId(a:{seq:number;birthYear:number|null}){return `${a.birthYear?String(a.birthYear).slice(-2):'?'}-${String(a.seq).padStart(3,'0')}`}
 export function label(a:Animal){return a.name||a.rightTag||a.leftTag||a.eid||displayId(a)}
@@ -29,3 +29,19 @@ export function relationshipMatrix(animals:Ancestor[]){
 }
 export function projectedCoi(matrix:ReturnType<typeof relationshipMatrix>,sire:string,dam:string){if(!matrix.has(sire)||!matrix.has(dam))throw Error('Select recorded parents.');return matrix.get(sire,dam)/2}
 export function relation(a:Animal,b:Animal){if(a.id===b.sire||a.id===b.dam||b.id===a.sire||b.id===a.dam)return 'Parent / offspring';if(a.sire&&a.dam&&a.sire===b.sire&&a.dam===b.dam)return 'Full siblings';if((a.sire&&a.sire===b.sire)||(a.dam&&a.dam===b.dam))return 'Half siblings';return 'See pedigree'}
+
+export function isFlockAnimal(a:{pedigreeOnly?:number;archivedAt?:string|null}){return !a.pedigreeOnly&&!a.archivedAt}
+export function ancestorInfo(value:unknown){
+ const source=value&&typeof value==='object'?value as Record<string,unknown>:{};
+ const result:Record<string,string>={};
+ for(const field of ['farm','registry','registrationNumber','notes']){
+  const v=source[field]??'';if(typeof v!=='string'||v.length>(field==='notes'?2000:200))throw Error('Ancestor details exceed the allowed length.');result[field]=v.trim();
+ }
+ return result;
+}
+export function validateParentDates(child:Animal,parent:Animal){
+ if(child.dob&&parent.dob&&parent.dob>=child.dob)throw Error('Parents must be born before their offspring.');
+ const cy=child.dob?Number(child.dob.slice(0,4)):child.birthYear;
+ const py=parent.dob?Number(parent.dob.slice(0,4)):parent.birthYear;
+ if(cy&&py&&py>cy)throw Error('A parent cannot have a later birth year.');
+}

@@ -113,3 +113,7 @@ Animals now have a Delete action with confirmation and a required reason. Delete
 ## Update: editable parentage
 
 Existing animal records now support Set pedigree. Sire/dam selection uses same-species records with the correct sex, retains unknown parents, checks known birth ordering and rejects ancestry cycles. Changes keep before/after snapshots and a reason. Optimistic checks include the pedigree graph revision to prevent concurrent changes from creating a cycle. The breeding screen recalculates from updated records. Ancestors must first exist as animal records; ancestor-only imports remain planned.
+
+## Update: multi-generation pedigrees and unowned ancestors
+
+The Pedigree view now displays both paternal and maternal lines with three initial ancestor generations and per-branch expansion. Ancestor records can be created directly from a parent slot without ownership or farm-presence requirements. They store optional DOB/year, breed, breeder/farm, registry, registration number and source notes. Existing ancestor records can be reused in multiple branches. Pedigree-only records contribute to COI and parentage but do not count as flock animals or permit weight sessions. The original two migrations are unchanged; migration 0002 adds the record distinction and metadata. Existing animals retain their flock classification.

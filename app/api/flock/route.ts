@@ -1,5 +1,5 @@
 import {rawDb} from '@/db';
-import {validateAnimal,validDate,relationshipMatrix,type Animal} from '@/lib/livestock';
+import {validateAnimal,validDate,relationshipMatrix,ancestorInfo,validateParentDates,type Animal} from '@/lib/livestock';
 export const dynamic='force-dynamic';
 const json=(data:unknown,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'no-store'}});
 export async function GET(){try{const db=rawDb();const [a,w,h]=await db.batch([db.prepare('SELECT * FROM animals ORDER BY seq DESC'),db.prepare('SELECT * FROM weights ORDER BY date DESC'),db.prepare('SELECT * FROM animal_history ORDER BY createdAt DESC')]);return json({animals:a.results,weights:w.results,history:h.results})}catch(e){console.error('Flock load failed',e);return json({error:'Records could not be loaded. Please try again.'},503)}}
@@ -8,9 +8,9 @@ export async function POST(req:Request){try{
  const year=Number(body.year);if(!Number.isInteger(year)||year<1900||year>new Date().getFullYear())throw Error('Choose a valid year.');
  const db=rawDb();const a=body.data;if(!a||typeof a!=='object')throw Error('Record details are required.');
  const id=String(a.id||'');if(!/^[0-9a-f-]{36}$/i.test(id))throw Error('Invalid record identifier.');
- if(['archive','restore','edit','pedigree'].includes(body.action)){
+ if(['archive','restore','edit','pedigree','ancestor-edit'].includes(body.action)){
   const existing=await db.prepare('SELECT * FROM animals WHERE id=?').bind(id).first<Animal>();
-  if(!existing||existing.firstYear>year)throw Error('Select an animal present in this year.');
+  if(!existing||(!existing.pedigreeOnly&&existing.firstYear>year))throw Error('Select an animal present in this year.');
   const operationId=String(a.operationId||'');if(!/^[0-9a-f-]{36}$/i.test(operationId))throw Error('Invalid change identifier.');
   const prior=await db.prepare('SELECT animalId,action FROM animal_history WHERE operationId=?').bind(operationId).first<{animalId:string;action:string}>();
   if(prior){if(prior.animalId!==id||prior.action!==body.action)throw Error('Change identifier already used.');return json({saved:true,id})}
@@ -21,9 +21,20 @@ export async function POST(req:Request){try{
   const now=new Date().toISOString();
   const next={...existing,version:existing.version+1};
   let graphVersion=-1;
-  if(body.action==='edit'){
+  if(body.action==='edit'||body.action==='ancestor-edit'){
    if(typeof a.name!=='string'||typeof a.breed!=='string'||a.name.length>200||a.breed.length>200)throw Error('Name and breed must be 200 characters or fewer.');
    next.name=a.name.trim();next.breed=a.breed.trim();
+   if(body.action==='ancestor-edit'){
+    if(!existing.pedigreeOnly)throw Error('This action only edits pedigree-only records.');
+    if(!next.name)throw Error('Enter an ancestor name or identifying label.');
+    next.dob=a.dob||null;next.birthYear=next.dob?Number(next.dob.slice(0,4)):a.birthYear??null;
+    next.pedigreeInfo=JSON.stringify(ancestorInfo(a.info));
+    validateAnimal({...next,origin:'Purchased',firstYear:new Date().getFullYear()});
+    const {results}=await db.prepare('SELECT * FROM animals').all<Animal>();
+    graphVersion=results.reduce((sum,p)=>sum+p.version,0);
+    for(const child of results.filter(p=>p.sire===id||p.dam===id))validateParentDates(child,next);
+    for(const parent of results.filter(p=>p.id===next.sire||p.id===next.dam))validateParentDates(next,parent);
+   }
   }else if(body.action==='pedigree'){
    next.sire=a.sire||null;next.dam=a.dam||null;
    const {results}=await db.prepare('SELECT * FROM animals').all<Animal>();
@@ -31,16 +42,23 @@ export async function POST(req:Request){try{
    for(const role of ['sire','dam'] as const){if(next[role]){
     const p=results.find(p=>p.id===next[role]);
     if(!p||p.id===id||p.species!==existing.species||p.sex!==(role==='sire'?'Male':'Female'))throw Error('Choose a different recorded parent of the same species and correct sex.');
-    if(p.dob&&existing.dob&&p.dob>=existing.dob)throw Error('Parents must be born before their offspring.');
-    if(p.birthYear&&existing.birthYear&&p.birthYear>existing.birthYear)throw Error('A parent cannot have a later birth year.');
+    validateParentDates(existing,p);
    }}
    relationshipMatrix(results.map(p=>p.id===id?next:p));
   }else next.archivedAt=body.action==='archive'?now:null;
   const result=await db.batch([
    db.prepare('INSERT INTO animal_history (operationId,animalId,action,reason,before,after,createdAt) SELECT ?,?,?,?,?,?,? FROM animals WHERE id=? AND version=? AND (?=-1 OR (SELECT SUM(version) FROM animals)=?)').bind(operationId,id,body.action,reason,JSON.stringify(existing),JSON.stringify(next),now,id,a.version,graphVersion,graphVersion),
-   db.prepare('UPDATE animals SET archivedAt=?,name=?,breed=?,sire=?,dam=?,version=version+1 WHERE id=? AND version=? AND (?=-1 OR (SELECT SUM(version) FROM animals)=?)').bind(next.archivedAt||null,next.name,next.breed,next.sire,next.dam,id,a.version,graphVersion,graphVersion)
+   db.prepare('UPDATE animals SET archivedAt=?,name=?,breed=?,sire=?,dam=?,dob=?,birthYear=?,pedigreeInfo=?,version=version+1 WHERE id=? AND version=? AND (?=-1 OR (SELECT SUM(version) FROM animals)=?)').bind(next.archivedAt||null,next.name,next.breed,next.sire,next.dam,next.dob,next.birthYear,next.pedigreeInfo||'{}',id,a.version,graphVersion,graphVersion)
   ]);
   if(result[1].meta.changes!==1)return json({error:'This animal changed in another view. Reload before trying again.'},409);
+ }else if(body.action==='ancestor'){
+  validateAnimal({...a,origin:'Purchased',firstYear:new Date().getFullYear()});
+  if(!['Male','Female'].includes(a.sex))throw Error('Choose the ancestor sex.');
+  if(typeof a.name!=='string'||!a.name.trim())throw Error('Enter an ancestor name or identifying label.');
+  const info=JSON.stringify(ancestorInfo(a.info));
+  const existing=await db.prepare('SELECT id,pedigreeOnly FROM animals WHERE id=?').bind(id).first<Animal>();
+  if(existing){if(!existing.pedigreeOnly)throw Error('Record identifier already used.');return json({saved:true,id})}
+  await db.prepare('INSERT INTO animals (id,species,name,sex,origin,dob,birthYear,firstYear,breed,status,pedigreeOnly,pedigreeInfo,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(id,a.species,a.name.trim(),a.sex,'Pedigree only',a.dob||null,a.dob?Number(a.dob.slice(0,4)):a.birthYear??null,year,String(a.breed||'').trim(),'Reference',1,info,new Date().toISOString()).run();
  }else if(body.action==='animal'){
   validateAnimal(a);if(a.firstYear!==year)throw Error('The first recorded year must match the selected year.');
   const existing=await db.prepare('SELECT id FROM animals WHERE id = ?').bind(id).first();if(existing)return json({saved:true,id});
@@ -51,7 +69,7 @@ export async function POST(req:Request){try{
   await db.prepare('INSERT INTO animals (id,species,name,rightTag,leftTag,eid,sex,origin,dob,birthYear,firstYear,breed,sire,dam,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(...vals).run();
  }else if(body.action==='weight'){
   if(!validDate(a.date)||Number(a.date.slice(0,4))!==year||a.date>new Date().toISOString().slice(0,10))throw Error('Weight date must be in the selected year and not in the future.');
-  const animal=await db.prepare('SELECT * FROM animals WHERE id = ?').bind(a.animalId).first<Animal>();if(!animal||animal.archivedAt||animal.firstYear>year)throw Error('Select an animal present in this year.');if(animal.dob&&a.date<animal.dob)throw Error('Weight date cannot precede birth.');
+  const animal=await db.prepare('SELECT * FROM animals WHERE id = ?').bind(a.animalId).first<Animal>();if(!animal||animal.pedigreeOnly||animal.archivedAt||animal.firstYear>year)throw Error('Select an animal present in this year.');if(animal.dob&&a.date<animal.dob)throw Error('Weight date cannot precede birth.');
   const value=Number(a.originalValue);if(!Number.isFinite(value)||value<=0||value>10000||!['lb','kg'].includes(a.unit))throw Error('Enter a positive measured weight and a valid unit.');
   if(!String(a.session||'').trim()||String(a.session).length>200)throw Error('Enter a session name (up to 200 characters).');
   if(await db.prepare('SELECT id FROM weights WHERE id=?').bind(id).first())return json({saved:true,id});

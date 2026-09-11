@@ -15,6 +15,13 @@
       "when": 1789150578624,
       "tag": "0001_lumpy_tarantula",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1789161284272,
+      "tag": "0002_thick_spiral",
+      "breakpoints": true
     }
   ]
 }
