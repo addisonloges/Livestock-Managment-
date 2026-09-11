@@ -1,9 +1,11 @@
 import { spawnSync } from "node:child_process";
+import {copyFileSync} from "node:fs";
 import { fileURLToPath } from "node:url";
 import { readExecutionProfile } from "./execution-profile.mjs";
 
 const [command, ...args] = process.argv.slice(2);
 if (!["dev", "build"].includes(command)) throw new Error("Expected dev or build.");
+copyFileSync(new URL('../node_modules/pdfjs-dist/build/pdf.worker.min.mjs',import.meta.url),new URL('../public/pdf.worker.min.mjs',import.meta.url));
 const managedLinux = readExecutionProfile() === "managed-linux";
 
 if (managedLinux && command === "build") {

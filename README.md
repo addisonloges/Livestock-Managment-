@@ -58,3 +58,11 @@ Animals can be deleted into a restorable archive. Name and breed-description edi
 Open Pedigree, choose a flock animal, and use Add sire or Add dam in either line. Select an existing record or Enter unowned ancestor. Name/identifying label is required; exact birth date, year, breed, breeder/farm, registry, registration number and notes/source are optional. Three ancestor generations are displayed initially; expand a branch or focus an ancestor to enter earlier generations. An ancestor is one shared record even when it appears in multiple places.
 
 Pedigree-only records are excluded from flock counts, breeding candidate lists and weight entry, but remain in parent pickers, global search, JSON exports and COI calculations. They can be edited and archived/restored with history. Existing flock records remain flock records; this release does not automatically reinterpret them as unowned.
+
+## Animal imports
+
+Import animals accepts CSV and Excel `.xlsx` files with column mapping, worksheet selection, editable preview and explicit review before saving. A CSV template is available in the dialog. Up to 200 new records can be saved atomically; existing records are not overwritten. Duplicate EIDs, matching tags and matching name/sex/birth details are flagged. Historical first-recorded years, unowned ancestors and parent links between import keys in the same batch are supported. Dates must use YYYY-MM-DD; identifiers should be stored as text in Excel.
+
+PDF-assisted import renders pages locally and displays extracted text. The user can draft a record from explicitly labeled text, then review or enter remaining fields. Scanned PDFs and graphical pedigrees require manual transcription and parent mapping; OCR and automatic tree recognition are not implemented. Source filename/page is retained in notes, not the original file. Legacy `.xls` files must be saved as `.xlsx` or CSV first.
+
+Set pedigree in an animal profile now opens the full pedigree workspace, including the unowned-parent entry flow and prefilled change reason.
