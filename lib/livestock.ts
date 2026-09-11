@@ -1,5 +1,5 @@
 export type Ancestor={id:string;sire:string|null;dam:string|null};
-export type Animal=Ancestor & {seq:number;species:string;name:string;rightTag:string;leftTag:string;eid:string|null;sex:string;origin:string;dob:string|null;birthYear:number|null;firstYear:number;breed:string;status:string;createdAt:string;version:number};
+export type Animal=Ancestor & {archivedAt?:string|null;seq:number;species:string;name:string;rightTag:string;leftTag:string;eid:string|null;sex:string;origin:string;dob:string|null;birthYear:number|null;firstYear:number;breed:string;status:string;createdAt:string;version:number};
 export type Weight={id:string;animalId:string;date:string;pounds:number;originalValue:number;unit:string;session:string};
 export function displayId(a:{seq:number;birthYear:number|null}){return `${a.birthYear?String(a.birthYear).slice(-2):'?'}-${String(a.seq).padStart(3,'0')}`}
 export function label(a:Animal){return a.name||a.rightTag||a.leftTag||a.eid||displayId(a)}

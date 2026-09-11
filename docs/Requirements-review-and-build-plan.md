@@ -105,3 +105,11 @@ These are implementation dependency groups, not promised sprint durations. Full-
 ## Inputs needed for subsequent work
 
 The later requirements/formula PDF; representative XR5000 and animal CSV/Excel exports; desired sequence numbering; breeding timing defaults; unknown-pedigree selection policy; ownership precision and financial allocation choices. These are recorded decisions to resolve as affected features are implemented, not a reason to stop the authorized first build.
+
+## Update: delete, restore and first editing workflow
+
+Animals now have a Delete action with confirmation and a required reason. Deleted records leave active lists but retain identity, weights and pedigree relationships; Deleted animals provides restoration with a reason. Name and breed-description edits retain before/after snapshots. All three operations use record-version conflict checks and retry identifiers. Change history is included in full JSON exports. This advances sections 5, 6 and 24; status transitions, general session reversal and tag/EID editing/history remain unfinished.
+
+## Update: editable parentage
+
+Existing animal records now support Set pedigree. Sire/dam selection uses same-species records with the correct sex, retains unknown parents, checks known birth ordering and rejects ancestry cycles. Changes keep before/after snapshots and a reason. Optimistic checks include the pedigree graph revision to prevent concurrent changes from creating a cycle. The breeding screen recalculates from updated records. Ancestors must first exist as animal records; ancestor-only imports remain planned.
