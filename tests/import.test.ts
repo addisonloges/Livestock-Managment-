@@ -1,7 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {blankImportRow,parseCsv,normalizeImportRow,prepareImport} from '../lib/animal-import.ts';
+import {blankImportRow,parseCsv,normalizeImportRow,prepareImport,mapImportRows} from '../lib/animal-import.ts';
 const row=(key:string,name=key)=>({...blankImportRow('Sheep','2026',key),name,sex:'Female'});
+test('duplicate birth columns combine blanks and agreeing values without losing dates',()=>{
+ const result=mapImportRows([['DOB','Birth Date'],['','2022-01-01'],['2021-01-01',''],['2020-01-01','2020-01-01'],['','']],['dob','dob'],'Sheep','2026');
+ assert.deepEqual(result.map(r=>r.dob),['2022-01-01','2021-01-01','2020-01-01','']);
+ assert.throws(()=>mapImportRows([['DOB','Birth Date'],['2022-01-01','2023-01-01']],['dob','dob'],'Sheep','2026'),/Row 1.*DOB.*Birth Date.*different values/);
+ assert.equal(mapImportRows([['Species','Year'],['','']],['species','firstYear'],'Sheep','2026')[0].firstYear,'2026');
+});
 test('CSV keeps quoted commas, escaped quotes, multiline cells and leading zeros',()=>{
  assert.deepEqual(parseCsv('\uFEFFname,eid,notes\r\n"Ewe, One",000123,"line 1\nline ""2"""\r\n'),[['name','eid','notes'],['Ewe, One','000123','line 1\nline "2"']]);
  assert.throws(()=>parseCsv('name\n"unclosed'),/not closed/);

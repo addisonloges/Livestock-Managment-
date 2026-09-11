@@ -5,6 +5,18 @@ export type ImportField=typeof importFields[number];
 export type ImportRow=Record<ImportField,string>&{id:string};
 export const fieldLabels:Record<ImportField,string>={recordKey:'Import key',species:'Species',name:'Name',sex:'Sex',origin:'Origin',dob:'Birth date',birthYear:'Birth year',firstYear:'First recorded year',rightTag:'Right tag',leftTag:'Left tag',eid:'EID',breed:'Breed',pedigreeOnly:'Unowned ancestor',sireKey:'Sire import key',damKey:'Dam import key',farm:'Breeder / farm',registry:'Registry',registrationNumber:'Registration number',notes:'Notes / source'};
 export function blankImportRow(species:string,year:string,key:string):ImportRow{return {...Object.fromEntries(importFields.map(k=>[k,''])),id:crypto.randomUUID(),recordKey:key,species,sex:'',origin:'Purchased',firstYear:year,pedigreeOnly:'No'} as ImportRow}
+export function mapImportRows(grid:string[][],mapping:string[],species:string,year:string):ImportRow[]{
+ return grid.slice(1).map((cells,i)=>{
+  const r=blankImportRow(species,year,String(i+1));
+  for(const field of importFields){
+   const columns=mapping.flatMap((k,c)=>k===field&&cells[c]?.trim()?[c]:[]);
+   const values=[...new Set(columns.map(c=>cells[c].trim()))];
+   if(values.length>1)throw Error(`Row ${i+1}: ${columns.map(c=>'“'+grid[0][c]+'”').join(' and ')} contain different values for ${fieldLabels[field]}. Correct the source values or set the column you do not want to “Do not import”.`);
+   if(values.length)r[field]=values[0];
+  }
+  return normalizeImportRow(r);
+ });
+}
 const canonical=(v:string)=>v.toLowerCase().replace(/[^a-z0-9]/g,'');
 export function matchImportField(header:string):ImportField|''{const h=canonical(header);const aliases:Record<string,ImportField>={animalname:'name',registeredname:'name',gender:'sex',dateofbirth:'dob',birthdate:'dob',electronicid:'eid',eartag:'rightTag',tag:'rightTag',year:'firstYear',unownedancestor:'pedigreeOnly',sire:'sireKey',dam:'damKey',id:'recordKey',animalid:'recordKey',registration:'registrationNumber'};return importFields.find(k=>canonical(k)===h||canonical(fieldLabels[k])===h)||aliases[h]||''}
 export function parseCsv(text:string):string[][]{
