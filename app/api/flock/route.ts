@@ -1,3 +1,4 @@
+import {tagChange} from '@/lib/tag-change';
 import {rawDb} from '@/db';
 import {validateAnimal,validDate,relationshipMatrix,ancestorInfo,validateParentDates,type Animal} from '@/lib/livestock';
 export const dynamic='force-dynamic';
@@ -8,7 +9,7 @@ export async function POST(req:Request){try{
  const year=Number(body.year);if(!Number.isInteger(year)||year<1900||year>new Date().getFullYear())throw Error('Choose a valid year.');
  const db=rawDb();const a=body.data;if(!a||typeof a!=='object')throw Error('Record details are required.');
  const id=String(a.id||'');if(!/^[0-9a-f-]{36}$/i.test(id))throw Error('Invalid record identifier.');
- if(['archive','restore','edit','pedigree','ancestor-edit'].includes(body.action)){
+ if(['archive','restore','edit','pedigree','ancestor-edit','tag'].includes(body.action)){
   const existing=await db.prepare('SELECT * FROM animals WHERE id=?').bind(id).first<Animal>();
   if(!existing||(!existing.pedigreeOnly&&existing.firstYear>year))throw Error('Select an animal present in this year.');
   const operationId=String(a.operationId||'');if(!/^[0-9a-f-]{36}$/i.test(operationId))throw Error('Invalid change identifier.');
@@ -19,12 +20,12 @@ export async function POST(req:Request){try{
   if(body.action==='restore'&&!existing.archivedAt)throw Error('This animal is not deleted.');
   if(body.action!=='restore'&&existing.archivedAt)throw Error('Restore this animal before changing it.');
   const now=new Date().toISOString();
-  const next={...existing,version:existing.version+1};
+  const next:Animal & {tagChange?:ReturnType<typeof tagChange>}={...existing,version:existing.version+1};
   let graphVersion=-1;
   if(body.action==='edit'||body.action==='ancestor-edit'){
    if(typeof a.name!=='string'||typeof a.breed!=='string'||a.name.length>200||a.breed.length>200)throw Error('Name and breed must be 200 characters or fewer.');
    next.name=a.name.trim();next.breed=a.breed.trim();
-   if(body.action==='edit'){for(const field of ['rightTag','leftTag','eid'] as const){if(field in a){if(typeof a[field]!=='string'||a[field].length>200)throw Error('Identifiers must be text, up to 200 characters.');if(field==='eid')next.eid=a[field].trim()||null;else next[field]=a[field].trim();}}}
+   if(body.action==='edit'){for(const field of ['rightTag','leftTag','eid'] as const){if(field in a&&String(a[field]||'').trim()!==(existing[field]||''))throw Error('Use Manage tags to correct, retire, or assign a tag.');}}
    if(body.action==='edit'&&'info' in a){
     if(!a.info||typeof a.info!=='object'||Array.isArray(a.info))throw Error('Invalid registration details.');
     const info=JSON.parse(existing.pedigreeInfo||'{}');
@@ -52,6 +53,11 @@ export async function POST(req:Request){try{
     for(const child of results.filter(p=>p.sire===id||p.dam===id))validateParentDates(child,next);
     for(const parent of results.filter(p=>p.id===next.sire||p.id===next.dam))validateParentDates(next,parent);
    }
+  }else if(body.action==='tag'){
+   const change=tagChange(existing,a,year);next.tagChange=change;
+   if(change.field==='eid')next.eid=change.value||null;else next[change.field]=change.value;
+   const {results}=await db.prepare('SELECT after FROM animal_history WHERE animalId=? AND action=?').bind(id,'tag').all<{after:string}>();
+   if(results.some(h=>{const t=JSON.parse(h.after).tagChange;return t?.field===change.field&&t.date>change.date}))throw Error('Tag date must be on or after the last event for this position.');
   }else if(body.action==='pedigree'){
    next.sire=a.sire||null;next.dam=a.dam||null;
    const {results}=await db.prepare('SELECT * FROM animals').all<Animal>();
