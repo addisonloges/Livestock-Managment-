@@ -18,7 +18,7 @@ export function mapImportRows(grid:string[][],mapping:string[],species:string,ye
  });
 }
 const canonical=(v:string)=>v.toLowerCase().replace(/[^a-z0-9]/g,'');
-export function matchImportField(header:string):ImportField|''{const h=canonical(header);const aliases:Record<string,ImportField>={animalname:'name',registeredname:'name',gender:'sex',dateofbirth:'dob',birthdate:'dob',electronicid:'eid',eartag:'rightTag',tag:'rightTag',year:'firstYear',unownedancestor:'pedigreeOnly',sire:'sireKey',dam:'damKey',id:'recordKey',animalid:'recordKey',registration:'registrationNumber'};return importFields.find(k=>canonical(k)===h||canonical(fieldLabels[k])===h)||aliases[h]||''}
+export function matchImportField(header:string):ImportField|''{const h=canonical(header);const aliases:Record<string,ImportField>={tag1:'rightTag',tag2:'leftTag',tag1color:'rightTagColor',tag2color:'leftTagColor',righttagnumber:'rightTag',lefttagnumber:'leftTag',animalname:'name',registeredname:'name',gender:'sex',dateofbirth:'dob',birthdate:'dob',electronicid:'eid',eartag:'rightTag',tag:'rightTag',year:'firstYear',unownedancestor:'pedigreeOnly',sire:'sireKey',dam:'damKey',id:'recordKey',animalid:'recordKey',registration:'registrationNumber'};return importFields.find(k=>canonical(k)===h||canonical(fieldLabels[k])===h)||aliases[h]||''}
 export function parseCsv(text:string):string[][]{
  text=text.replace(/^\uFEFF/,'');const rows:string[][]=[];let row:string[]=[],cell='',quoted=false,closed=false;
  for(let i=0;i<text.length;i++){const c=text[i];if(quoted){if(c==='"'){if(text[i+1]==='"'){cell+='"';i++}else{quoted=false;closed=true}}else cell+=c;continue}
@@ -31,9 +31,11 @@ export function parseCsv(text:string):string[][]{
 export function normalizeImportRow(r:ImportRow):ImportRow{
  const n={...r};for(const k of importFields)n[k]=String(r[k]??'').trim();
  if(!n.sex||['unknown','not known','n/a','?'].includes(n.sex.toLowerCase()))n.sex='Unknown';
+ if(/^\d{4}$/.test(n.dob)){if(!n.birthYear)n.birthYear=n.dob;n.dob='';}
+ const us=n.dob.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);if(us)n.dob=`${us[3]}-${us[1].padStart(2,'0')}-${us[2].padStart(2,'0')}`;
  const sex=canonical(n.sex);n.sex=({f:'Female',female:'Female',ewe:'Female',doe:'Female',m:'Male',male:'Male',ram:'Male',buck:'Male',wether:'Castrated male',castratedmale:'Castrated male'} as Record<string,string>)[sex]||n.sex;
  n.species=({sheep:'Sheep',goat:'Goats',goats:'Goats'} as Record<string,string>)[canonical(n.species)]||n.species;
- n.origin=({purchased:'Purchased',bought:'Purchased',homeraised:'Home-raised',homebred:'Home-raised'} as Record<string,string>)[canonical(n.origin)]||n.origin;
+ n.origin=({purchase:'Purchased',purchsae:'Purchased',purchased:'Purchased',bought:'Purchased',raised:'Home-raised',homeraised:'Home-raised',homebred:'Home-raised'} as Record<string,string>)[canonical(n.origin)]||n.origin;
  n.pedigreeOnly=['yes','true','1'].includes(n.pedigreeOnly.toLowerCase())?'Yes':['no','false','0',''].includes(n.pedigreeOnly.toLowerCase())?'No':n.pedigreeOnly;
  return n;
 }
