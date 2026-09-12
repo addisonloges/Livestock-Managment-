@@ -1,15 +1,16 @@
+import {statuses,statusAt} from '@/lib/animal-status';
 import {tagChange} from '@/lib/tag-change';
 import {rawDb} from '@/db';
 import {validateAnimal,validDate,relationshipMatrix,ancestorInfo,validateParentDates,type Animal} from '@/lib/livestock';
 export const dynamic='force-dynamic';
 const json=(data:unknown,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'no-store'}});
-export async function GET(){try{const db=rawDb();const [a,w,h]=await db.batch([db.prepare('SELECT * FROM animals ORDER BY seq DESC'),db.prepare('SELECT * FROM weights ORDER BY date DESC'),db.prepare('SELECT * FROM animal_history ORDER BY createdAt DESC')]);return json({animals:a.results,weights:w.results,history:h.results})}catch(e){console.error('Flock load failed',e);return json({error:'Records could not be loaded. Please try again.'},503)}}
+export async function GET(){try{const db=rawDb();const [a,w,h]=await db.batch([db.prepare('SELECT * FROM animals ORDER BY seq DESC'),db.prepare('SELECT * FROM weights ORDER BY date DESC'),db.prepare('SELECT * FROM animal_history ORDER BY createdAt DESC')]);return json({animals:a.results.map((animal:any)=>({...animal,statusEvents:h.results.filter((e:any)=>e.animalId===animal.id&&e.action==='status').map((e:any)=>({...JSON.parse(e.after).statusEvent,operationId:e.operationId,reason:e.reason})).sort((a:any,b:any)=>a.date.localeCompare(b.date))})),weights:w.results,history:h.results})}catch(e){console.error('Flock load failed',e);return json({error:'Records could not be loaded. Please try again.'},503)}}
 export async function POST(req:Request){try{
  const body:any=await req.json();if(body.year==='all')return json({error:'All Years is read-only. Choose a specific year to save.'},400);
  const year=Number(body.year);if(!Number.isInteger(year)||year<1900||year>new Date().getFullYear())throw Error('Choose a valid year.');
  const db=rawDb();const a=body.data;if(!a||typeof a!=='object')throw Error('Record details are required.');
  const id=String(a.id||'');if(!/^[0-9a-f-]{36}$/i.test(id))throw Error('Invalid record identifier.');
- if(['archive','restore','edit','pedigree','ancestor-edit','tag'].includes(body.action)){
+ if(['archive','restore','edit','pedigree','ancestor-edit','tag','status'].includes(body.action)){
   const existing=await db.prepare('SELECT * FROM animals WHERE id=?').bind(id).first<Animal>();
   if(!existing||(!existing.pedigreeOnly&&existing.firstYear>year))throw Error('Select an animal present in this year.');
   const operationId=String(a.operationId||'');if(!/^[0-9a-f-]{36}$/i.test(operationId))throw Error('Invalid change identifier.');
@@ -20,7 +21,7 @@ export async function POST(req:Request){try{
   if(body.action==='restore'&&!existing.archivedAt)throw Error('This animal is not deleted.');
   if(body.action!=='restore'&&existing.archivedAt)throw Error('Restore this animal before changing it.');
   const now=new Date().toISOString();
-  const next:Animal & {tagChange?:ReturnType<typeof tagChange>}={...existing,version:existing.version+1};
+  const next:Animal & {tagChange?:ReturnType<typeof tagChange>;statusEvent?:any}={...existing,version:existing.version+1};
   let graphVersion=-1;
   if(body.action==='edit'||body.action==='ancestor-edit'){
    if(typeof a.name!=='string'||typeof a.breed!=='string'||a.name.length>200||a.breed.length>200)throw Error('Name and breed must be 200 characters or fewer.');
@@ -53,6 +54,20 @@ export async function POST(req:Request){try{
     for(const child of results.filter(p=>p.sire===id||p.dam===id))validateParentDates(child,next);
     for(const parent of results.filter(p=>p.id===next.sire||p.id===next.dam))validateParentDates(next,parent);
    }
+  }else if(body.action==='status'){
+   if(existing.pedigreeOnly)throw Error('Record status only for flock animals.');
+   if(!statuses.includes(a.status))throw Error('Choose a valid status.');
+   if(typeof a.date!=='string'||!validDate(a.date)||Number(a.date.slice(0,4))!==year||a.date>now.slice(0,10)||(existing.dob&&a.date<existing.dob))throw Error('Choose a valid effective date in the selected year, not before birth or in the future.');
+   const {results}=await db.prepare("SELECT after FROM animal_history WHERE animalId=? AND action='status'").bind(id).all<{after:string}>();
+   if(results.some(h=>JSON.parse(h.after).statusEvent.date>=a.date))throw Error('Use a date after the last status event. Earlier event corrections need review.');
+   if(existing.status===a.status)throw Error('This animal already has that status.');
+   const isCull=a.status==='Culled'||(['Sold','Transferred'].includes(a.status)&&a.exitReason==='Cull');
+   if(isCull&&(typeof a.cullReason!=='string'||!a.cullReason.trim()||a.cullReason.length>200))throw Error('Enter a cull reason, up to 200 characters.');
+   if(a.status!=='Active'){
+    const later=await db.prepare('SELECT date FROM weights WHERE animalId=? AND date>? LIMIT 1').bind(id,a.date).first();
+    if(later)throw Error('There are weight records after this exit date. Review those dates first.');
+   }
+   next.status=a.status;next.statusEvent={date:a.date,status:a.status,exitReason:isCull?'Cull':'',cullReason:isCull?a.cullReason.trim():''};
   }else if(body.action==='tag'){
    const change=tagChange(existing,a,year);next.tagChange=change;
    if(change.field!=='eid')next[change.field]=change.value;
@@ -72,7 +87,7 @@ export async function POST(req:Request){try{
   }else next.archivedAt=body.action==='archive'?now:null;
   const result=await db.batch([
    db.prepare('INSERT INTO animal_history (operationId,animalId,action,reason,before,after,createdAt) SELECT ?,?,?,?,?,?,? FROM animals WHERE id=? AND version=? AND (?=-1 OR (SELECT SUM(version) FROM animals)=?)').bind(operationId,id,body.action,reason,JSON.stringify(existing),JSON.stringify(next),now,id,a.version,graphVersion,graphVersion),
-   db.prepare('UPDATE animals SET archivedAt=?,name=?,breed=?,sire=?,dam=?,dob=?,birthYear=?,pedigreeInfo=?,sex=?,rightTag=?,leftTag=?,eid=?,version=version+1 WHERE id=? AND version=? AND (?=-1 OR (SELECT SUM(version) FROM animals)=?)').bind(next.archivedAt||null,next.name,next.breed,next.sire,next.dam,next.dob,next.birthYear,next.pedigreeInfo||'{}',next.sex,next.rightTag,next.leftTag,next.eid,id,a.version,graphVersion,graphVersion)
+   db.prepare('UPDATE animals SET archivedAt=?,name=?,breed=?,sire=?,dam=?,dob=?,birthYear=?,pedigreeInfo=?,sex=?,rightTag=?,leftTag=?,eid=?,status=?,version=version+1 WHERE id=? AND version=? AND (?=-1 OR (SELECT SUM(version) FROM animals)=?)').bind(next.archivedAt||null,next.name,next.breed,next.sire,next.dam,next.dob,next.birthYear,next.pedigreeInfo||'{}',next.sex,next.rightTag,next.leftTag,next.eid,next.status,id,a.version,graphVersion,graphVersion)
   ]);
   if(result[1].meta.changes!==1)return json({error:'This animal changed in another view. Reload before trying again.'},409);
  }else if(body.action==='ancestor'){
@@ -94,6 +109,9 @@ export async function POST(req:Request){try{
  }else if(body.action==='weight'){
   if(!validDate(a.date)||Number(a.date.slice(0,4))!==year||a.date>new Date().toISOString().slice(0,10))throw Error('Weight date must be in the selected year and not in the future.');
   const animal=await db.prepare('SELECT * FROM animals WHERE id = ?').bind(a.animalId).first<Animal>();if(!animal||animal.pedigreeOnly||animal.archivedAt||animal.firstYear>year)throw Error('Select an animal present in this year.');if(animal.dob&&a.date<animal.dob)throw Error('Weight date cannot precede birth.');
+  const statusHistory=await db.prepare("SELECT after FROM animal_history WHERE animalId=? AND action='status'").bind(animal.id).all<{after:string}>();
+  const statusEvents=statusHistory.results.map(h=>({...JSON.parse(h.after).statusEvent}));
+  if(statusAt({...animal,statusEvents},a.date)!=='Active'&&!statusEvents.some(e=>e.date===a.date&&e.status!=='Active'))throw Error('This animal was not active on the weight date.');
   const value=Number(a.originalValue);if(!Number.isFinite(value)||value<=0||value>10000||!['lb','kg'].includes(a.unit))throw Error('Enter a positive measured weight and a valid unit.');
   if(!String(a.session||'').trim()||String(a.session).length>200)throw Error('Enter a session name (up to 200 characters).');
   if(await db.prepare('SELECT id FROM weights WHERE id=?').bind(id).first())return json({saved:true,id});

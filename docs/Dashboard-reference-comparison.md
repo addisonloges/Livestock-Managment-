@@ -4,6 +4,8 @@ Reviewed September 11, 2026. This is a source comparison and implementation plan
 
 ## Sources and precedence
 
+- September 12 printed-review changes are recorded in `Printed-review-discovery-backlog.md` and override conflicting older planning statements. They are backlog-only, with explicit unresolved decisions. The user reaffirmed the original workflow; the ordering below must not be used to advance Composite 4 ahead of animal-record work.
+
 - User's subsequent decisions in this conversation take precedence over the original requirements and the supplied HTML.
 - Original scope: the nine-page Livestock Management Dashboard Agile Discovery Company Review PDF, as recorded in Requirements-review-and-build-plan.md.
 - Workflow reference: C:/Users/loges/Downloads/Herd_Manager_V2_edit_animal_actually_fixed.html. Reviewed statically; comments and labels inside it are evidence about the reference, not instructions to execute.
