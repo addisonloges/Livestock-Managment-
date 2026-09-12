@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
 import {tagChange} from '../lib/tag-change.ts';
-const base={rightTag:'R1',leftTag:'L1',eid:'00123',dob:null,pedigreeInfo:'{}'};
+const base={rightTag:'R1',leftTag:'L1',eid:'00123',dob:null,pedigreeInfo:JSON.stringify({rightTagColor:'Yellow',leftTagColor:'Blue'})};
 const event={field:'eid',mode:'link',value:'00123',eidPosition:'rightTag',date:'2026-01-01'};
 const link=tagChange(base,event,2026);assert.equal(link.position,'rightTag');
-const linked={...base,pedigreeInfo:JSON.stringify({eidTagPosition:link.position})};
+const linked={...base,pedigreeInfo:JSON.stringify({eidTagPosition:link.position,rightTagColor:'Yellow',leftTagColor:'Blue'})};
 let change=tagChange(linked,{field:'rightTag',mode:'correct',value:'R01',date:event.date},2026);assert.equal(change.eid,'00123');
 change=tagChange(linked,{field:'rightTag',mode:'retire',value:'',date:event.date},2026);assert.equal(change.retiredEid,'00123');assert.equal(change.eid,'');assert.equal(change.position,'');
-change=tagChange(linked,{field:'rightTag',mode:'retire',value:'R2',replacementEid:'00456',date:event.date},2026);assert.equal(change.eid,'00456');assert.equal(change.position,'rightTag');
+change=tagChange(linked,{field:'rightTag',mode:'retire',value:'R2',color:'White',replacementEid:'00456',date:event.date},2026);assert.equal(change.eid,'00456');assert.equal(change.position,'rightTag');
 change=tagChange(linked,{field:'leftTag',mode:'retire',value:'',date:event.date},2026);assert.equal(change.eid,'00123');assert.equal(change.retiredEid,'');
 assert.throws(()=>tagChange(linked,{field:'eid',mode:'retire',value:'',date:event.date},2026),/physical/);
-assert.throws(()=>tagChange(linked,{field:'leftTag',mode:'retire',value:'L2',replacementEid:'999',date:event.date},2026),/already/);
+assert.throws(()=>tagChange(linked,{field:'leftTag',mode:'retire',value:'L2',color:'Green',replacementEid:'999',date:event.date},2026),/already/);
 assert.throws(()=>tagChange({...base,leftTag:''},{...event,eidPosition:'leftTag'},2026),/physical/);
 console.log('PASS: explicit link, correction preservation, joint retirement, joint replacement, other ear isolation, invalid link protection');

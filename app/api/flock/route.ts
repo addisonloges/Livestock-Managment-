@@ -71,7 +71,7 @@ export async function POST(req:Request){try{
   }else if(body.action==='tag'){
    const change=tagChange(existing,a,year);next.tagChange=change;
    if(change.field!=='eid')next[change.field]=change.value;
-   next.eid=change.eid||null;next.pedigreeInfo=JSON.stringify({...JSON.parse(existing.pedigreeInfo||'{}'),eidTagPosition:change.position});
+   next.eid=change.eid||null;next.pedigreeInfo=JSON.stringify({...JSON.parse(existing.pedigreeInfo||'{}'),eidTagPosition:change.position,...(change.field!=='eid'?{[change.field+'Color']:change.color}:{})});
    const {results}=await db.prepare('SELECT after FROM animal_history WHERE animalId=? AND action=?').bind(id,'tag').all<{after:string}>();
    if(results.some(h=>{const t=JSON.parse(h.after).tagChange;return t&&t.date>change.date}))throw Error('Tag date must be on or after the last event for this position.');
   }else if(body.action==='pedigree'){
@@ -99,13 +99,15 @@ export async function POST(req:Request){try{
   if(existing){if(!existing.pedigreeOnly)throw Error('Record identifier already used.');return json({saved:true,id})}
   await db.prepare('INSERT INTO animals (id,species,name,sex,origin,dob,birthYear,firstYear,breed,status,pedigreeOnly,pedigreeInfo,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(id,a.species,a.name.trim(),a.sex,'Pedigree only',a.dob||null,a.dob?Number(a.dob.slice(0,4)):a.birthYear??null,year,String(a.breed||'').trim(),'Reference',1,info,new Date().toISOString()).run();
  }else if(body.action==='animal'){
+  const colors:Record<string,string>={};
+  for(const field of ['rightTag','leftTag']){const color=a[field+'Color'];if(String(a[field]||'').trim()&&(typeof color!=='string'||!color.trim()||color.length>60))throw Error('Enter the color for each entered tag number (up to 60 characters).');colors[field+'Color']=String(a[field]||'').trim()?color.trim():'';}
   validateAnimal(a);if(a.firstYear!==year)throw Error('The first recorded year must match the selected year.');
   const existing=await db.prepare('SELECT id FROM animals WHERE id = ?').bind(id).first();if(existing)return json({saved:true,id});
   const {results}=await db.prepare('SELECT * FROM animals').all<Animal>();
   for(const role of ['sire','dam'] as const){if(a[role]){const p=results.find(x=>x.id===a[role]);if(!p||p.species!==a.species||p.sex!==(role==='sire'?'Male':'Female'))throw Error('Parent must be a recorded animal of the same species and correct sex.');if(p.dob&&a.dob&&p.dob>=a.dob)throw Error('Parents must be born before their offspring.');if(p.birthYear&&a.birthYear&&p.birthYear>a.birthYear)throw Error('A parent cannot have a later birth year.')}}
   relationshipMatrix([...results,{id,sire:a.sire||null,dam:a.dam||null}]);
-  const vals=[id,a.species,String(a.name||'').trim(),String(a.rightTag||'').trim(),String(a.leftTag||'').trim(),String(a.eid||'').trim()||null,a.sex,a.origin,a.dob||null,a.dob?Number(a.dob.slice(0,4)):a.birthYear??null,year,String(a.breed||'').trim(),a.sire||null,a.dam||null,new Date().toISOString()];
-  await db.prepare('INSERT INTO animals (id,species,name,rightTag,leftTag,eid,sex,origin,dob,birthYear,firstYear,breed,sire,dam,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(...vals).run();
+  const vals=[id,a.species,String(a.name||'').trim(),String(a.rightTag||'').trim(),String(a.leftTag||'').trim(),String(a.eid||'').trim()||null,a.sex,a.origin,a.dob||null,a.dob?Number(a.dob.slice(0,4)):a.birthYear??null,year,String(a.breed||'').trim(),a.sire||null,a.dam||null,JSON.stringify(colors),new Date().toISOString()];
+  await db.prepare('INSERT INTO animals (id,species,name,rightTag,leftTag,eid,sex,origin,dob,birthYear,firstYear,breed,sire,dam,pedigreeInfo,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(...vals).run();
  }else if(body.action==='weight'){
   if(!validDate(a.date)||Number(a.date.slice(0,4))!==year||a.date>new Date().toISOString().slice(0,10))throw Error('Weight date must be in the selected year and not in the future.');
   const animal=await db.prepare('SELECT * FROM animals WHERE id = ?').bind(a.animalId).first<Animal>();if(!animal||animal.pedigreeOnly||animal.archivedAt||animal.firstYear>year)throw Error('Select an animal present in this year.');if(animal.dob&&a.date<animal.dob)throw Error('Weight date cannot precede birth.');

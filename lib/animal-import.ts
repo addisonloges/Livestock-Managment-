@@ -1,9 +1,9 @@
 import {validateAnimal,validateParentDates,type Animal} from './livestock.ts';
 
-export const importFields = ['recordKey','species','name','sex','origin','dob','birthYear','firstYear','rightTag','leftTag','eid','breed','pedigreeOnly','sireKey','damKey','farm','registry','registrationNumber','notes'] as const;
+export const importFields = ['recordKey','species','name','sex','origin','dob','birthYear','firstYear','rightTag','rightTagColor','leftTag','leftTagColor','eid','breed','pedigreeOnly','sireKey','damKey','farm','registry','registrationNumber','notes'] as const;
 export type ImportField=typeof importFields[number];
 export type ImportRow=Record<ImportField,string>&{id:string};
-export const fieldLabels:Record<ImportField,string>={recordKey:'Import key',species:'Species',name:'Name',sex:'Sex',origin:'Origin',dob:'Birth date',birthYear:'Birth year',firstYear:'First recorded year',rightTag:'Right tag',leftTag:'Left tag',eid:'EID',breed:'Breed',pedigreeOnly:'Unowned ancestor',sireKey:'Sire import key',damKey:'Dam import key',farm:'Breeder / farm',registry:'Registry',registrationNumber:'Registration number',notes:'Notes / source'};
+export const fieldLabels:Record<ImportField,string>={recordKey:'Import key',species:'Species',name:'Name',sex:'Sex',origin:'Origin',dob:'Birth date',birthYear:'Birth year',firstYear:'First recorded year',rightTag:'Right tag',rightTagColor:'Right tag color',leftTag:'Left tag',leftTagColor:'Left tag color',eid:'EID',breed:'Breed',pedigreeOnly:'Unowned ancestor',sireKey:'Sire import key',damKey:'Dam import key',farm:'Breeder / farm',registry:'Registry',registrationNumber:'Registration number',notes:'Notes / source'};
 export function blankImportRow(species:string,year:string,key:string):ImportRow{return {...Object.fromEntries(importFields.map(k=>[k,''])),id:crypto.randomUUID(),recordKey:key,species,sex:'',origin:'Purchased',firstYear:year,pedigreeOnly:'No'} as ImportRow}
 export function mapImportRows(grid:string[][],mapping:string[],species:string,year:string):ImportRow[]{
  return grid.slice(1).map((cells,i)=>{
@@ -47,6 +47,7 @@ export function prepareImport(input:ImportRow[],existing:Animal[],year:number){
   if(!r.name&&!r.rightTag&&!r.leftTag&&!r.eid)throw Error('Enter a name, tag or EID.');
   if(r.pedigreeOnly==='Yes'&&(!r.name||!['Unknown','Male','Female'].includes(r.sex)))throw Error('An unowned ancestor needs a name; sex can be Unknown.');
   for(const k of importFields)if(r[k].length>(k==='notes'?2000:200))throw Error(`${fieldLabels[k]} is too long.`);
+  for(const field of ['rightTag','leftTag'] as const)if(r[field]&&(!r[field+'Color' as ImportField]||r[field+'Color' as ImportField].length>60))throw Error('Enter '+fieldLabels[field]+' color (up to 60 characters).');
   const a={...r,dob:r.dob||null,birthYear:r.dob?Number(r.dob.slice(0,4)):r.birthYear?Number(r.birthYear):null,firstYear:Number(r.firstYear),pedigreeOnly:r.pedigreeOnly==='Yes'?1:0,sire:null,dam:null} as unknown as Animal;
   validateAnimal({...a,origin:a.pedigreeOnly?'Purchased':a.origin});if(a.firstYear>year)throw Error('First recorded year cannot be later than the selected year.');return a;
  }catch(e){errors.push(`${prefix}: ${(e as Error).message}`);return null}});

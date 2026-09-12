@@ -3,7 +3,7 @@ export const tagLabels={rightTag:'Right tag',leftTag:'Left tag',eid:'EID'};
 export function tagChange(animal:Animal,input:any,year:number){
  const field=input.field as keyof typeof tagLabels;
  if(!(field in tagLabels)||!Object.hasOwn(tagLabels,field))throw Error('Choose a tag position.');
- if(!['correct','retire','assign','link'].includes(input.mode))throw Error('Choose correction, retirement, or assignment.');
+ if(!['correct','retire','assign','link','color'].includes(input.mode))throw Error('Choose correction, retirement, or assignment.');
  const old=animal[field]||'';
  if(typeof input.value!=='string'||input.value.length>200)throw Error('Tag must be text, up to 200 characters.');
  const value=input.value.trim();
@@ -12,10 +12,16 @@ export function tagChange(animal:Animal,input:any,year:number){
  if(input.mode==='assign'&&!value)throw Error('Enter the new tag.');
  if(input.mode==='correct'&&!value)throw Error('Enter the corrected tag. To remove a lost tag, retire it.');
  if(input.mode==='link'&&(field!=='eid'||!old||value!==old))throw Error('Link the existing EID without changing its number.');
- if(input.mode!=='link'&&value===old)throw Error('The new value must differ from the current tag.');
+ if(!['link','color'].includes(input.mode)&&value===old)throw Error('The new value must differ from the current tag.');
  if(!validDate(input.date)||Number(input.date.slice(0,4))!==year||input.date>new Date().toISOString().slice(0,10))throw Error('Choose a valid date in the selected year, not in the future.');
  if(animal.dob&&input.date<animal.dob)throw Error('Tag date cannot precede birth.');
  const info=JSON.parse(animal.pedigreeInfo||'{}');
+ if(input.mode==='color'&&(field==='eid'||value!==old))throw Error('Choose a visual tag to record its color without changing its number.');
+ const previousColor=field==='eid'?'':info[field+'Color']||'';
+ const rawColor=input.color??(input.mode==='correct'||input.mode==='color'?previousColor:'');
+ if(typeof rawColor!=='string'||rawColor.length>60)throw Error('Enter a tag color up to 60 characters.');
+ const color=field==='eid'?'':value?rawColor.trim():'';
+ if(field!=='eid'&&value&&!color)throw Error('Enter the color for this tag number.');
  const oldPosition=info.eidTagPosition||'';
  let eid=animal.eid||'',position=oldPosition;
  if(field==='eid'){
@@ -25,7 +31,7 @@ export function tagChange(animal:Animal,input:any,year:number){
   if(!['','rightTag','leftTag'].includes(position))throw Error('Choose an EID ear position.');
   if(position&&!animal[position as 'rightTag'|'leftTag'])throw Error('Record the physical ear tag before linking its EID.');
   if(!eid)position='';
- }else if(input.mode!=='correct'){
+ }else if(!['correct','color'].includes(input.mode)){
   const replacement=input.replacementEid??'';
   if(typeof replacement!=='string'||replacement.length>200)throw Error('EID must be text, up to 200 characters.');
   if(input.mode==='retire'&&oldPosition===field){eid='';position='';}
@@ -35,5 +41,5 @@ export function tagChange(animal:Animal,input:any,year:number){
    eid=replacement.trim();position=field;
   }
  }
- return {field,mode:input.mode as 'correct'|'retire'|'assign'|'link',previous:old,value,date:input.date,eid,position,previousEid:animal.eid||'',previousPosition:oldPosition,retiredEid:input.mode==='retire'&&(field==='eid'||oldPosition===field)?animal.eid||'':''};
+ return {field,mode:input.mode as 'correct'|'retire'|'assign'|'link'|'color',color,previousColor,previous:old,value,date:input.date,eid,position,previousEid:animal.eid||'',previousPosition:oldPosition,retiredEid:input.mode==='retire'&&(field==='eid'||oldPosition===field)?animal.eid||'':''};
 }
