@@ -1,5 +1,5 @@
 import {statuses,statusAt} from '@/lib/animal-status';
-import {tagChange} from '@/lib/tag-change';
+import {updateTagRecords} from '@/lib/tag-records';
 import {rawDb} from '@/db';
 import {validateAnimal,validDate,relationshipMatrix,ancestorInfo,validateParentDates,type Animal} from '@/lib/livestock';
 export const dynamic='force-dynamic';
@@ -21,7 +21,7 @@ export async function POST(req:Request){try{
   if(body.action==='restore'&&!existing.archivedAt)throw Error('This animal is not deleted.');
   if(body.action!=='restore'&&existing.archivedAt)throw Error('Restore this animal before changing it.');
   const now=new Date().toISOString();
-  const next:Animal & {tagChange?:ReturnType<typeof tagChange>;statusEvent?:any}={...existing,version:existing.version+1};
+  const next:Animal & {tagChange?:any;statusEvent?:any}={...existing,version:existing.version+1};
   let graphVersion=-1;
   if(body.action==='edit'||body.action==='ancestor-edit'){
    if(typeof a.name!=='string'||typeof a.breed!=='string'||a.name.length>200||a.breed.length>200)throw Error('Name and breed must be 200 characters or fewer.');
@@ -69,12 +69,9 @@ export async function POST(req:Request){try{
    }
    next.status=a.status;next.statusEvent={date:a.date,status:a.status,exitReason:isCull?'Cull':'',cullReason:isCull?a.cullReason.trim():''};
   }else if(body.action==='tag'){
-   const change=tagChange(existing,a,year);next.tagChange=change;
-   if(change.field!=='eid')next[change.field]=change.value;
-   next.eid=change.eid||null;next.pedigreeInfo=JSON.stringify({...JSON.parse(existing.pedigreeInfo||'{}'),eidTagPosition:change.position,...(change.field!=='eid'?{[change.field+'Color']:change.color}:{})});
-   if(change.swap){next.rightTag=change.swap.rightTag;next.leftTag=change.swap.leftTag;next.pedigreeInfo=JSON.stringify({...JSON.parse(next.pedigreeInfo||'{}'),rightTagColor:change.swap.rightTagColor,leftTagColor:change.swap.leftTagColor});}
+   const changed=updateTagRecords(existing,a,year);next.tagChange=changed.event;next.rightTag=changed.rightTag;next.leftTag=changed.leftTag;next.eid=changed.eid;next.pedigreeInfo=changed.pedigreeInfo;
    const {results}=await db.prepare('SELECT after FROM animal_history WHERE animalId=? AND action=?').bind(id,'tag').all<{after:string}>();
-   if(results.some(h=>{const t=JSON.parse(h.after).tagChange;return t&&t.date>change.date}))throw Error('Tag date must be on or after the last event for this position.');
+   if(results.some(h=>{const t=JSON.parse(h.after).tagChange;return t&&t.date>changed.event.date}))throw Error('Tag date must be on or after the last event for this position.');
   }else if(body.action==='pedigree'){
    next.sire=a.sire||null;next.dam=a.dam||null;
    const {results}=await db.prepare('SELECT * FROM animals').all<Animal>();
