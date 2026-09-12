@@ -55,9 +55,10 @@ export async function POST(req:Request){try{
    }
   }else if(body.action==='tag'){
    const change=tagChange(existing,a,year);next.tagChange=change;
-   if(change.field==='eid')next.eid=change.value||null;else next[change.field]=change.value;
+   if(change.field!=='eid')next[change.field]=change.value;
+   next.eid=change.eid||null;next.pedigreeInfo=JSON.stringify({...JSON.parse(existing.pedigreeInfo||'{}'),eidTagPosition:change.position});
    const {results}=await db.prepare('SELECT after FROM animal_history WHERE animalId=? AND action=?').bind(id,'tag').all<{after:string}>();
-   if(results.some(h=>{const t=JSON.parse(h.after).tagChange;return t?.field===change.field&&t.date>change.date}))throw Error('Tag date must be on or after the last event for this position.');
+   if(results.some(h=>{const t=JSON.parse(h.after).tagChange;return t&&t.date>change.date}))throw Error('Tag date must be on or after the last event for this position.');
   }else if(body.action==='pedigree'){
    next.sire=a.sire||null;next.dam=a.dam||null;
    const {results}=await db.prepare('SELECT * FROM animals').all<Animal>();
