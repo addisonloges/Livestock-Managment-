@@ -98,7 +98,7 @@ export async function POST(req:Request){try{
   await db.prepare('INSERT INTO animals (id,species,name,sex,origin,dob,birthYear,firstYear,breed,status,pedigreeOnly,pedigreeInfo,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(id,a.species,a.name.trim(),a.sex,'Pedigree only',a.dob||null,a.dob?Number(a.dob.slice(0,4)):a.birthYear??null,year,String(a.breed||'').trim(),'Reference',1,info,new Date().toISOString()).run();
  }else if(body.action==='animal'){
   const colors:Record<string,string>={};
-  for(const field of ['rightTag','leftTag']){const color=a[field+'Color'];if(String(a[field]||'').trim()&&(typeof color!=='string'||!color.trim()||color.length>60))throw Error('Enter the color for each entered tag number (up to 60 characters).');colors[field+'Color']=String(a[field]||'').trim()?color.trim():'';}
+  for(const field of ['rightTag','leftTag']){const color=a[field+'Color']??'';if(String(a[field]||'').trim()&&(typeof color!=='string'||color.length>60))throw Error('Tag colors must be text up to 60 characters.');colors[field+'Color']=String(a[field]||'').trim()?color.trim():'';}
   validateAnimal(a);if(a.firstYear!==year)throw Error('The first recorded year must match the selected year.');
   const existing=await db.prepare('SELECT id FROM animals WHERE id = ?').bind(id).first();if(existing)return json({saved:true,id});
   const {results}=await db.prepare('SELECT * FROM animals').all<Animal>();

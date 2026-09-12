@@ -27,7 +27,6 @@ export function tagChange(animal:Animal,input:any,year:number){
  const rawColor=input.color??(input.mode==='correct'||input.mode==='color'?previousColor:'');
  if(typeof rawColor!=='string'||rawColor.length>60)throw Error('Enter a tag color up to 60 characters.');
  const color=field==='eid'?'':value?rawColor.trim():'';
- if(field!=='eid'&&value&&!color)throw Error('Enter the color for this tag number.');
  const oldPosition=info.eidTagPosition||'';
  let eid=animal.eid||'',position=oldPosition;
  if(field==='eid'){

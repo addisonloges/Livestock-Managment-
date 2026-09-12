@@ -50,8 +50,8 @@ export function prepareImport(input:ImportRow[],existing:Animal[],year:number){
   if(!r.name&&!r.rightTag&&!r.leftTag&&!r.eid)throw Error('Enter a name, tag or EID.');
   if(r.pedigreeOnly==='Yes'&&(!r.name||!['Unknown','Male','Female'].includes(r.sex)))throw Error('An unowned ancestor needs a name; sex can be Unknown.');
   for(const k of importFields)if(r[k].length>(k==='notes'?2000:200))throw Error(`${fieldLabels[k]} is too long.`);
-  for(const field of ['rightTag','leftTag'] as const)if(r[field]&&(!r[field+'Color' as ImportField]||r[field+'Color' as ImportField].length>60))throw Error('Enter '+fieldLabels[field]+' color (up to 60 characters).');
-  if(r.additionalTagNumber&&(!r.additionalTagColor||r.additionalTagColor.length>60||!['left','right'].includes(r.additionalTagEar.toLowerCase())))throw Error('An additional tag needs a color and Left or Right ear.');
+  for(const field of ['rightTag','leftTag'] as const)if(r[field]&&r[field+'Color' as ImportField].length>60)throw Error('Enter '+fieldLabels[field]+' color (up to 60 characters).');
+  if(r.additionalTagNumber&&(r.additionalTagColor.length>60||!['left','right'].includes(r.additionalTagEar.toLowerCase())))throw Error('An additional tag needs a Left or Right ear; color may be filled in later.');
   const a={...r,dob:r.dob||null,birthYear:r.dob?Number(r.dob.slice(0,4)):r.birthYear?Number(r.birthYear):null,firstYear:Number(r.firstYear),pedigreeOnly:r.pedigreeOnly==='Yes'?1:0,sire:null,dam:null} as unknown as Animal;
   validateAnimal({...a,origin:a.pedigreeOnly?'Purchased':a.origin});if(a.firstYear>year)throw Error('First recorded year cannot be later than the selected year.');return a;
  }catch(e){errors.push(`${prefix}: ${(e as Error).message}`);return null}});

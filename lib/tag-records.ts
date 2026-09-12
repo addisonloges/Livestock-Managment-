@@ -9,7 +9,7 @@ export function updateTagRecords(a:Animal,input:any,year:number){
  let event:any={field,mode,date:input.date,previous:current?.number||'',previousColor:current?.color||'',previousEid:eid,previousPosition:position,retiredEid:''};
  if(mode==='add'){
   if(!['Right','Left'].includes(input.ear))throw Error('Choose the ear for this tag.');
-  const number=string(input.value,200),color=string(input.color,60);if(!number||!color)throw Error('Enter a tag number and its color.');
+  const number=string(input.value,200),color=string(input.color??'',60);if(!number)throw Error('Enter a tag number.');
   const id='extra:'+input.operationId;if(slots.some(t=>t.id===id))throw Error('Tag already exists.');
   const slot:TagSlot={id,ear:input.ear,number,color};slots.push(slot);event={...event,field:id,value:number,color,ear:slot.ear};
  }else if(mode==='swap'){
@@ -34,8 +34,8 @@ export function updateTagRecords(a:Animal,input:any,year:number){
   if(!current||!['correct','assign','retire','color'].includes(mode))throw Error('Choose a tag and action.');
   if(mode==='assign'&&current.number)throw Error('Retire the existing tag before assigning a new one.');
   if(mode!=='assign'&&!current.number)throw Error('No tag is recorded in this position.');
-  const value=mode==='color'?current.number:string(input.value,200),color=value?string(input.color,60):'';
-  if(mode!=='retire'&&!value)throw Error('Enter the tag number.');if(value&&!color)throw Error('Enter the color for this tag number.');
+  const value=mode==='color'?current.number:string(input.value,200),color=value?string(input.color??'',60):'';
+  if(mode!=='retire'&&!value)throw Error('Enter the tag number.');
   if(mode==='retire'&&value===current.number)throw Error('Replacement must differ from the retired tag.');
   if(mode==='retire'&&position===current.id){event.retiredEid=eid;eid='';position='';}
   if(['retire','assign'].includes(mode)&&input.replacementEid){if(!value)throw Error('Enter a replacement tag number.');if(eid)throw Error('An EID is already recorded.');eid=string(input.replacementEid,200);position=current.id;}
