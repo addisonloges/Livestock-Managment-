@@ -1,9 +1,9 @@
 import {validateAnimal,validateParentDates,type Animal} from './livestock.ts';
 
-export const importFields = ['recordKey','species','name','sex','origin','dob','birthYear','firstYear','rightTag','rightTagColor','leftTag','leftTagColor','eid','breed','pedigreeOnly','sireKey','damKey','farm','registry','registrationNumber','notes'] as const;
+export const importFields = ['recordKey','species','name','sex','origin','dob','birthYear','firstYear','rightTag','rightTagColor','tagColors','leftTag','leftTagColor','eid','breed','pedigreeOnly','sireKey','damKey','farm','registry','registrationNumber','notes'] as const;
 export type ImportField=typeof importFields[number];
 export type ImportRow=Record<ImportField,string>&{id:string};
-export const fieldLabels:Record<ImportField,string>={recordKey:'Import key',species:'Species',name:'Name',sex:'Sex',origin:'Origin',dob:'Birth date',birthYear:'Birth year',firstYear:'First recorded year',rightTag:'Right tag',rightTagColor:'Right tag color',leftTag:'Left tag',leftTagColor:'Left tag color',eid:'EID',breed:'Breed',pedigreeOnly:'Unowned ancestor',sireKey:'Sire import key',damKey:'Dam import key',farm:'Breeder / farm',registry:'Registry',registrationNumber:'Registration number',notes:'Notes / source'};
+export const fieldLabels:Record<ImportField,string>={recordKey:'Import key',species:'Species',name:'Name',sex:'Sex',origin:'Origin',dob:'Birth date',birthYear:'Birth year',firstYear:'First recorded year',rightTag:'Right tag',rightTagColor:'Right tag color',tagColors:'Tag colors (right/left)',leftTag:'Left tag',leftTagColor:'Left tag color',eid:'EID',breed:'Breed',pedigreeOnly:'Unowned ancestor',sireKey:'Sire import key',damKey:'Dam import key',farm:'Breeder / farm',registry:'Registry',registrationNumber:'Registration number',notes:'Notes / source'};
 export function blankImportRow(species:string,year:string,key:string):ImportRow{return {...Object.fromEntries(importFields.map(k=>[k,''])),id:crypto.randomUUID(),recordKey:key,species,sex:'',origin:'Purchased',firstYear:year,pedigreeOnly:'No'} as ImportRow}
 export function mapImportRows(grid:string[][],mapping:string[],species:string,year:string):ImportRow[]{
  return grid.slice(1).map((cells,i)=>{
@@ -14,11 +14,12 @@ export function mapImportRows(grid:string[][],mapping:string[],species:string,ye
    if(values.length>1)throw Error(`Row ${i+1}: ${columns.map(c=>'“'+grid[0][c]+'”').join(' and ')} contain different values for ${fieldLabels[field]}. Correct the source values or set the column you do not want to “Do not import”.`);
    if(values.length)r[field]=values[0];
   }
+  if(r.tagColors){const parts=r.tagColors.split('/').map(v=>v.trim());if(parts.length>2)throw Error(`Row ${i+1}: use right/left for tag colors.`);for(const [field,color] of [['rightTagColor',parts[0]],['leftTagColor',parts[1]||'']] as const){if(r[field]&&color&&r[field].toLowerCase()!==color.toLowerCase())throw Error(`Row ${i+1}: conflicting ${fieldLabels[field]}.`);if(!r[field])r[field]=color;}}
   return normalizeImportRow(r);
  });
 }
 const canonical=(v:string)=>v.toLowerCase().replace(/[^a-z0-9]/g,'');
-export function matchImportField(header:string):ImportField|''{const h=canonical(header);const aliases:Record<string,ImportField>={tag1:'rightTag',tag2:'leftTag',tag1color:'rightTagColor',tag2color:'leftTagColor',righttagnumber:'rightTag',lefttagnumber:'leftTag',animalname:'name',registeredname:'name',gender:'sex',dateofbirth:'dob',birthdate:'dob',electronicid:'eid',eartag:'rightTag',tag:'rightTag',year:'firstYear',unownedancestor:'pedigreeOnly',sire:'sireKey',dam:'damKey',id:'recordKey',animalid:'recordKey',registration:'registrationNumber'};return importFields.find(k=>canonical(k)===h||canonical(fieldLabels[k])===h)||aliases[h]||''}
+export function matchImportField(header:string):ImportField|''{const h=canonical(header);const aliases:Record<string,ImportField>={tagcolor:'tagColors',tag1:'rightTag',tag2:'leftTag',tag1color:'rightTagColor',tag2color:'leftTagColor',righttagnumber:'rightTag',lefttagnumber:'leftTag',animalname:'name',registeredname:'name',gender:'sex',dateofbirth:'dob',birthdate:'dob',electronicid:'eid',eartag:'rightTag',tag:'rightTag',year:'firstYear',unownedancestor:'pedigreeOnly',sire:'sireKey',dam:'damKey',id:'recordKey',animalid:'recordKey',registration:'registrationNumber'};return importFields.find(k=>canonical(k)===h||canonical(fieldLabels[k])===h)||aliases[h]||''}
 export function parseCsv(text:string):string[][]{
  text=text.replace(/^\uFEFF/,'');const rows:string[][]=[];let row:string[]=[],cell='',quoted=false,closed=false;
  for(let i=0;i<text.length;i++){const c=text[i];if(quoted){if(c==='"'){if(text[i+1]==='"'){cell+='"';i++}else{quoted=false;closed=true}}else cell+=c;continue}
@@ -64,3 +65,5 @@ export function prepareImport(input:ImportRow[],existing:Animal[],year:number){
  try{for(const id of graph.keys())visit(id)}catch(e){errors.push((e as Error).message)}
  return {rows,animals:candidates as Animal[],errors};
 }
+
+export function swapImportTags(row:ImportRow):ImportRow{return {...row,rightTag:row.leftTag,leftTag:row.rightTag,rightTagColor:row.leftTagColor,leftTagColor:row.rightTagColor};}
