@@ -1,12 +1,13 @@
 # Program progress and consolidated review
 
-This is the current cumulative checkpoint, not a claim that all 37 areas are complete. Phase 1 foundation is implemented and technically verified; user acceptance remains pending. Phase 2 history/session work is active. See Phase-1-completion-and-test-schedule.md for the 45–60 minute review schedule. Later phases are not being accelerated past unresolved design decisions. The user is remote on a phone and has asked development to continue without individual feature testing.
+**Controlling workflow correction:** Phase 1 is animal identity/records and is reopened. Its ownership history and registration attachments are outstanding. Then: Phase 2 breeding; Phase 3 lambing/offspring; Phase 4 weights/growth/performance; Phase 5 operations; Phase 6 finances; Phase 7 offline/recovery. Earlier phase numbering and completion statements below are historical. See Phase-1-completion-and-test-schedule.md. Existing weight tools remain available; their expansion is paused.
+This is the current cumulative checkpoint, not a claim that all 37 areas are complete. Phase 1 animal identity and records is in progress; prior completion labeling is withdrawn. See Phase-1-completion-and-test-schedule.md for the 45–60 minute review schedule. Later phases are not being accelerated past unresolved design decisions. The user is remote on a phone and has asked development to continue without individual feature testing.
 
 ## All 37 requirement areas
 
 | # | Area | Current position |
 |---|---|---|
-| 1 | Overall concept | Working foundation; six phases retained |
+| 1 | Overall concept | Animal identity first; seven corrected phases |
 | 2 | Animal identity | UUIDs, tags/EID, multi-tag records, retirement and correction history |
 | 3 | Animal information | Editable details, optional missing data and flags; numeric breed composition pending |
 | 4 | Ownership/origin/registry | Origin and registration text; ownership history and registration attachments pending |

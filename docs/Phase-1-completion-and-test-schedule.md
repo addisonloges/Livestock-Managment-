@@ -1,48 +1,43 @@
-# Phase 1 foundation — implementation complete
+# Phase 1 — Animal identity and records (reopened)
 
-Completed September 13, 2026. User acceptance review remains pending. This closes the agreed Phase 1 foundation from the dependency plan; it does not complete all 37 requirement areas or Phase 2.
+The September 13 completion claim is withdrawn following the user's workflow correction. Phase 1 is animal identity and records, not a combined animal/breeding/weights foundation. Existing code and data are retained. This document supersedes the earlier completion and 45–60 minute test schedule.
 
-## Scope and completion evidence
+## Scope
 
-| Foundation deliverable | Implemented behavior | Verification |
+- Permanent animal identity, species, basic details, origin and first recorded year.
+- Tags, multiple tags per ear, tag colors, EID association, correction versus retirement/replacement, and former identifiers.
+- Animal imports, duplicate review and nonblocking missing-data flags.
+- Registration information with papers/photos attached directly to that registration.
+- Dated ownership and status history, recorded reasons, archive/restore and audit trail.
+- Maternal/paternal pedigree with unowned ancestors, parent validation and recorded sources.
+- Notes, animal search, portable identity/parent exports and durable saves.
+
+## Current status
+
+Available: identity/editing, tags/EID/history, imports, missing-detail flags, registration text, status history, pedigree, notes and exports.
+
+Outstanding: dated ownership history and registration attachments. Ownership precision, overlapping periods and correction behavior need a bounded design before code. Attachment storage and registration association need implementation and verification. These are Phase 1 backlog items, not completed features.
+
+Acceptance requires a coherent animal profile workflow across those areas; save/reload, identity integrity, incomplete-data handling, species/year boundaries, imports and export must be verified together. User acceptance remains pending. Do not mark this phase complete because weight tools or a subset of foundation tests pass.
+
+## Corrected sequence
+
+1. Animal identity and records.
+2. Breeding: ram decisions, ewe relationships, flexible groups/exposures, pregnancy and optional Composite 4.
+3. Lambing/kidding and offspring: litter outcomes, stillbirths, offspring identities, foster/rearing details linked to breeding.
+4. Weights, growth and performance: primarily offspring birth/weaning/later growth, with breeding-stock measurements still supported.
+5. Farm operations: health, inventory, feed, management flags and calendar.
+6. Finances: expenses, allocation, sales and current-year/lifetime outcomes.
+7. Offline and recovery: offline entry/sync and full backup/restore.
+
+Data preservation, exports and technical verification run throughout. Existing weight code remains available; pause further weight feature work until breeding and offspring context is ready. No existing animal or measurement is deleted or remapped by this planning correction.
+
+## Grouped test schedule after Phase 1 is ready
+
+| Block | Time | Coverage |
 |---|---|---|
-| Animal creation/lifetime identity | Sheep/goat records; unknown sex/birth permitted; immutable UUID and stable sequence; edited display labels retain searchable prior labels | Local API creation, identity correction and history checks |
-| Species/year filtering | Species views, explicit first-recorded year, historical status/presence, All Years read-only | Domain presence checks; local server read-only and species-boundary rejection |
-| Measured weights/ADG | Original lb/kg and normalized pounds, duplicate date protection, chronological growth; historical views exclude later and voided readings | Calculation tests; local API original-unit/duplicate/retry checks |
-| Parent links/COI | Same-species parent validation, partial-date consistency, cycle rejection, unowned ancestors, known-pedigree COI with limitations | Relatedness, repeated ancestry, missing/cyclic ancestor and API parent validation checks |
-| Portable exports | CSV separates immutable ID/display ID and parent UUID references; JSON retains complete foundation records and history | CSV identity/parent/escaping tests and full export implementation review |
-| Visible limitations | Phase status and combined review guide in Build Plan | Source/build verification |
+| Identity and imports | 15–20 min | Animal details, tags/EID/colors, missing flags, duplicate review, saved corrections |
+| Ownership/registration/history | 15–20 min | Dated ownership, registration attachments, status/exit reasons, audit and restore |
+| Pedigree/search/export | 10–15 min | Both family lines, unowned ancestors, current/former identifiers, permanent IDs and parent references |
 
-## Final closure fixes
-
-- Historical latest-weight and ADG views now exclude measurements from later years.
-- Birth-year corrections retain searchable former display IDs; UUID/sequence remain unchanged.
-- Animal CSV exports now include the immutable ID, separate display ID, sire/dam keys and ancestor classification.
-- Animal creation consistently validates parent dates when only partial birth information is available.
-- Sire screening selection is constrained to the currently visible active male flock.
-- Animal/weight date input handling keeps edits when other fields change.
-- The year picker includes dated status history and voided weight years.
-
-## Technical results
-
-10 automated foundation/domain tests passed. Local Phase 1 API flow passed: unknown-data creation, same-species/parent-date rules, duplicate EID rejection, persisted parent links, lb/kg conversion, duplicate weight rejection, repeat-save safety, immutable identity after birth-year correction, cycle rejection, ancestor weight restrictions and All Years write rejection. Type checking and production build passed. Test fixtures were created only in the local database, not the hosted farm records.
-
-This is not a claim that every screen has completed user testing. The scheduled review below is the remaining acceptance activity.
-
-## Proposed test schedule — one combined 45–60 minute review
-
-Start whenever desktop access is convenient; no calendar appointment or automation is created.
-
-| Block | Time | Test tasks | Pass condition |
-|---|---|---|---|
-| 1. Records and year views | 15–20 min | Compare several animals to source records; check missing-detail flags; make a legitimate correction and refresh; switch species/year; inspect All Years | Correct identities and values persist; species/year views are consistent; All Years is read-only |
-| 2. Pedigree and screening | 10–15 min | Follow maternal/paternal lines; inspect an unowned ancestor; review known-family relationship/COI and incomplete ancestry text | Parents are correct, ancestor is outside flock totals, estimated relationship is explained |
-| 3. Weights and exports | 20–25 min | Use actual measured weights; verify units and chronological growth, including a historical year; correct/review history; export CSV/JSON | No future/voided measurement leaks into historical growth; identities/parents and history are present in exports |
-
-Optional Phase 2 regression during Block 3: spreadsheet batch import, duplicate/retired identifier review and session void/restore. If real weighing data is not available, defer that user scenario; do not invent farm measurements just to test.
-
-Collect issues in one list: animal identifier, selected species/year, steps, expected result and actual result. Mark data loss, wrong identity/parent or incorrect calculation as blocking; keep wording/layout preferences as refinements. One combined review and fix pass follows.
-
-## Scope remaining outside Phase 1
-
-Phase 2 has substantial tags/status/import/session work already delivered, but ownership history and broader session behavior are not all complete. Registration attachments, saved breeding groups/Composite 4, reproduction, health/feed, finances, offline sync and full backup/restore remain later work. The app uses species-partitioned records in one database, global sequence numbering, online saves and exports; full host migration/restore has not been certified.
+Total: 40–55 minutes in one combined review, after outstanding implementation. No calendar event is scheduled. Record one consolidated issue list with animal ID, action, expected and observed results. Weight growth, session review and mating decisions are not Phase 1 acceptance tests.

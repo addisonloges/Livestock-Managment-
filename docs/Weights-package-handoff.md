@@ -1,5 +1,6 @@
 # Weights package — consolidated handoff
 
+**Controlling workflow correction:** Phase 1 is animal identity/records and is reopened. Its ownership history and registration attachments are outstanding. Then: Phase 2 breeding; Phase 3 lambing/offspring; Phase 4 weights/growth/performance; Phase 5 operations; Phase 6 finances; Phase 7 offline/recovery. Earlier phase numbering and completion statements below are historical. See Phase-1-completion-and-test-schedule.md. Existing weight tools remain available; their expansion is paused.
 ## Additions and changes
 
 - Individual measurements: correct, void, restore, and inspect before/after history with reasons.

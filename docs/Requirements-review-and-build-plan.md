@@ -2,9 +2,9 @@
 
 Source: Livestock_Management_Dashboard_Agile_Discovery_Company_Review-1.pdf, nine pages, supplied September 11, 2026. This is the source for this implementation. The later formula appendix mentioned in the project conversation is absent from this file. No prior assistant claim about those formulas is treated as verified source material.
 
-## Phase 1 closure — September 13, 2026
+## Corrected phase order — controlling update
 
-Phase 1 foundation implementation is complete; combined user acceptance is pending. See `Phase-1-completion-and-test-schedule.md` for exact scope, final fixes, verification and the 45–60 minute test schedule. This does not close Phase 2 or all 37 areas.
+The user corrected the workflow: animal identity → breeding → lambing/offspring → weights/growth. The earlier Phase 1 completion claim is withdrawn. Phase 1 is in progress and includes registration attachments and dated ownership history as outstanding work. See `Phase-1-completion-and-test-schedule.md`. Preserve existing weighting tools but pause their expansion until offspring context is ready. Historical first-build scope statements below do not override this correction.
 
 ## Current cumulative checkpoint
 
@@ -54,12 +54,15 @@ Every event has a stable ID, effective date, owning year, species and audit link
 
 ## Dependency-based build plan
 
-1. **Foundation (this first implementation):** animal creation and lifetime identity, species/year filtering, measured weights and ADG, parent links and calculated prospective COI, portable record export. Show limitations in the app.
-2. **History and sessions:** tags/EID history, ownership/status changes, audited edit/void/restore, import mapping and unmatched EID review. Exit criteria: duplicate/import conflicts cannot finalize; session reversals restore prior effective values.
-3. **Reproduction:** sire-first groups, exposure intervals, configurable dates, pregnancy/birth/stillborn/rearing/weaning workflows and performance. Exit criteria: cross-year births link correctly, unknown sire stays unknown and stillborn counts affect litter metrics without requiring profiles.
-4. **Farm operations:** health sessions and reminders, approximate inventory, feed purchases and ration versions, full calendar, lab files, reports and custom fields. Exit criteria: treatment units are explicit; feed estimates never invent body weight; actual scale readings are untouched.
-5. **Financial ledger:** single posted expenses, allocation lines, sales, lifetime/current-year net and separate parent contribution. Exit criteria: allocation sums reconcile exactly; no double-counting in animal or flock totals.
-6. **Offline and recovery:** PWA cache and outbox, manual sync/conflicts, restore safety copies, scoped restores, scheduled backup retention and phone workflows. Exit criteria: lost responses and replay cannot duplicate sessions; conflicting edits remain reviewable; verified backup restores work on a fresh database.
+1. **Animal identity and records:** IDs, tags/EID, imports, registration/papers, ownership/status, maternal/paternal pedigree, notes and audit history. Complete coherent records before moving to breeding.
+2. **Breeding:** ram selection, ewe relationships, flexible groups/exposures, pregnancy checks and optional Composite 4 parameters.
+3. **Lambing/kidding and offspring:** linked births, litter outcomes, stillbirths, offspring records and foster/rearing information.
+4. **Weights, growth and performance:** offspring birth/weaning/later measurements and dam/sire performance, while retaining breeding-stock weights.
+5. **Farm operations:** treatments, inventory, feed/rations, management flags and calendar; preserve unresolved design decisions.
+6. **Finances:** animal/general expenses, allocation, sales, current-year/lifetime outcomes.
+7. **Offline and recovery:** offline entry, explicit sync and verified full backup/restore.
+
+Data preservation, exports and verification apply throughout, not only in Phase 7. Phase 1 ownership history and registration attachments remain unfinished. Existing weight features belong to Phase 4 and do not satisfy Phase 1 exit criteria.
 
 These are implementation dependency groups, not promised sprint durations. Full-system completion requires all acceptance criteria and actual XR5000 samples, historic data and calculation references.
 
