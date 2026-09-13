@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 const root='http://127.0.0.1:5173/api/flock';const post=async(path,body)=>{const r=await fetch(root+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});return {status:r.status,data:await r.json()}};
 const ram=crypto.randomUUID(),ewe=crypto.randomUUID();for(const [id,sex] of [[ram,'Male'],[ewe,'Female']])assert.equal((await post('',{action:'animal',year:'2026',data:{id,species:'Sheep',name:'Local breeding QA',sex,origin:'Purchased',firstYear:2026}})).status,200);
-const g={id:crypto.randomUUID(),version:0,species:'Sheep',year:2026,name:'Local group',ramId:ram,eweIds:[ewe],start:'2026-09-01',end:'2027-01-01',state:'Planned',notes:''},op=crypto.randomUUID();const request={year:'2026',data:g,operationId:op,reason:'Local test'};
+const g={id:crypto.randomUUID(),version:0,species:'Sheep',year:2026,name:'Local group',ramId:ram,eweIds:[ewe],plannedStart:'2026-09-01',start:'',end:'2027-01-01',state:'Planned',notes:''},op=crypto.randomUUID();const request={year:'2026',data:g,operationId:op,reason:'Local test'};
 assert.equal((await post('/breeding',{...request,year:'all'})).status,400);assert.equal((await post('/breeding',request)).status,200);assert.equal((await post('/breeding',request)).status,200);
 let d=await(await fetch(root+'/breeding')).json();assert.equal(d.groups.filter(x=>x.id===g.id).length,1);assert.equal(d.history.filter(x=>x.groupId===g.id).length,1);
-assert.equal((await post('/breeding',{...request,operationId:crypto.randomUUID(),data:{...g,version:1,state:'Exposed'}})).status,200);
+assert.equal((await post('/breeding',{...request,operationId:crypto.randomUUID(),data:{...g,version:1,state:'Exposed',start:'2026-09-03'}})).status,200);
 assert.equal((await post('/breeding',{...request,operationId:crypto.randomUUID()})).status,409);
 assert.equal((await post('/breeding',{...request,operationId:crypto.randomUUID(),data:{...g,id:crypto.randomUUID(),name:'Second group same ram'}})).status,200);
-d=await(await fetch(root+'/breeding')).json();assert.equal(d.groups.find(x=>x.id===g.id).state,'Exposed');assert.equal(d.history.filter(x=>x.groupId===g.id).length,2);console.log('PASS breeding create/retry, cross-year dates, multiple groups per ram, exposure update, history, stale-version and All Years guards');
+d=await(await fetch(root+'/breeding')).json();assert.equal(d.groups.find(x=>x.id===g.id).state,'Exposed');assert.equal(d.groups.find(x=>x.id===g.id).plannedStart,'2026-09-01');assert.equal(d.groups.find(x=>x.id===g.id).start,'2026-09-03');assert.equal(d.history.filter(x=>x.groupId===g.id).length,2);console.log('PASS breeding create/retry, cross-year dates, multiple groups per ram, exposure update, history, stale-version and All Years guards');

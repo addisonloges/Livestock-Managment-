@@ -1,5 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {validateGroup} from '../lib/breeding.ts';
 const ram={id:'r',species:'Sheep',sex:'Male',firstYear:2025,sire:null,dam:null},ewe={...ram,id:'e',sex:'Female'};
-const group={id:'g',species:'Sheep',year:2026,name:'Group',ramId:'r',eweIds:['e'],start:'2026-09-01',end:'2027-01-01',state:'Planned',notes:''};
+const group={id:'g',species:'Sheep',year:2026,name:'Group',ramId:'r',eweIds:['e'],plannedStart:'2026-09-01',start:'',end:'2027-01-01',state:'Planned',notes:''};
 test('groups allow cross-year exposures but reject duplicate members and invalid dates/species',()=>{assert.doesNotThrow(()=>validateGroup(group,[ram,ewe]));assert.throws(()=>validateGroup({...group,eweIds:['e','e']},[ram,ewe]));assert.throws(()=>validateGroup({...group,end:'2026-01-01'},[ram,ewe]));assert.throws(()=>validateGroup(group,[ram,{...ewe,species:'Goats'}]));});
-test('high COI blocks planned mating but actual historical exposure remains recordable',()=>{const daughter={...ewe,sire:'r'};assert.throws(()=>validateGroup(group,[ram,daughter]),/20%/);assert.doesNotThrow(()=>validateGroup({...group,state:'Exposed'},[ram,daughter]));});
+test('high COI blocks planned mating but actual historical exposure remains recordable',()=>{const daughter={...ewe,sire:'r'};assert.throws(()=>validateGroup(group,[ram,daughter]),/20%/);assert.doesNotThrow(()=>validateGroup({...group,state:'Exposed',start:'2026-09-03'},[ram,daughter]));});
+
+test('planned groups can have no date; actual exposure keeps a different planned date',()=>{assert.doesNotThrow(()=>validateGroup({...group,plannedStart:'',start:'',end:''},[ram,ewe]));assert.throws(()=>validateGroup({...group,state:'Exposed'},[ram,ewe]),/actual exposure/);assert.doesNotThrow(()=>validateGroup({...group,state:'Exposed',start:'2026-09-03'},[ram,ewe]));});
