@@ -14,3 +14,8 @@ export const breedingProjects=sqliteTable('breeding_projects',{id:text('id').pri
 
 export const farmRecords=sqliteTable('farm_records',{id:text('id').primaryKey(),kind:text('kind').notNull(),species:text('species').notNull(),date:text('date').notNull(),data:text('data').notNull(),version:integer('version').notNull().default(1),archivedAt:text('archivedAt')});
 export const farmHistory=sqliteTable('farm_history',{operationId:text('operationId').primaryKey(),recordId:text('recordId').notNull(),before:text('before').notNull(),after:text('after').notNull(),createdAt:text('createdAt').notNull()});
+export const recoveryControl=sqliteTable('recovery_control',{id:integer('id').primaryKey(),epoch:integer('epoch').notNull().default(0)});
+
+export const identityCounters=sqliteTable('identity_counters',{yearKey:integer('yearKey').primaryKey(),highWater:integer('highWater').notNull()});
+
+export const recoveryRuns=sqliteTable('recovery_runs',{id:text('id').primaryKey(),epoch:integer('epoch').notNull(),scope:text('scope').notNull(),safetyKey:text('safetyKey').notNull(),createdAt:text('createdAt').notNull(),counts:text('counts').notNull()});

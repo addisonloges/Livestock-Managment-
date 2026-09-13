@@ -13,3 +13,5 @@ test('CSV includes registration and notes without dropping leading zeros or mult
  const rows=parseCsv(animalCsv([a],'2026-12-31'));const r=Object.fromEntries(rows[0].map((k,i)=>[k,rows[1][i]]));
  assert.equal(r.origin,'Home-raised');assert.equal(r.registrationNumber,'00123');assert.equal(r.notes,'Line one\nLine two');assert.equal(r.farm,'Farm');
 });
+
+test('animal CSV includes labeled custom fields and preserves false, zero and archived values',()=>{const animal={id:'a',seq:1,status:'Active',pedigreeInfo:JSON.stringify({customValues:{n:0,b:false,t:'Old value'}})},fields=[{id:'n',name:'Number',type:'Number',archived:false},{id:'b',name:'Flag',type:'Yes/No',archived:false},{id:'t',name:'Text',type:'Text',archived:true}];const rows=parseCsv(animalCsv([animal],'2026-12-31',fields));const row=Object.fromEntries(rows[0].map((k,i)=>[k,rows[1][i]]));assert.equal(row['Custom: Number'],'0');assert.equal(row['Custom: Flag'],'No');assert.equal(row['Custom: Text (archived)'],'Old value');});

@@ -1,9 +1,10 @@
+import {withWriteEpoch} from '@/db/recovery-context';
 import {env} from 'cloudflare:workers';
 import {rawDb} from '@/db';
 import {animalFiles,fileType} from '@/lib/animal-files';
 import {isUuid} from '@/lib/lambing';
 export const dynamic='force-dynamic';
-export async function POST(req:Request){try{
+async function handlePOST(req:Request){try{
  const form=await req.formData(),animalId=String(form.get('animalId')||''),eventId=String(form.get('eventId')||''),fileId=String(form.get('fileId')||''),file=form.get('file');
  if(!!eventId===!!animalId||!isUuid(eventId||animalId)||!isUuid(fileId)||!(file instanceof File)||file.size>10*1024*1024)throw Error('Invalid backup file.');
  const animal:any=await rawDb().prepare('SELECT pedigreeInfo FROM animals WHERE id=?').bind(animalId).first();
@@ -13,3 +14,5 @@ export async function POST(req:Request){try{
  if(old){const digest=async(b:BufferSource)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',b))).join(',');if(await digest(await old.arrayBuffer())!==await digest(bytes))return Response.json({error:'An existing file differs. It was not overwritten.'},{status:409});return Response.json({saved:true,alreadyPresent:true});}
  const stored=await env.BUCKET.put(key,bytes,{httpMetadata:{contentType:reference.type},onlyIf:{etagDoesNotMatch:'*'}});if(!stored)return Response.json({error:'File arrived from another operation. Retry to compare it.'},{status:409});return Response.json({saved:true});
  }catch(e){return Response.json({error:(e as Error).message},{status:400})}}
+
+export const POST=withWriteEpoch(handlePOST);

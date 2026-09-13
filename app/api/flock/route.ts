@@ -1,3 +1,4 @@
+import {withReadEpoch,withWriteEpoch} from '@/db/recovery-context';
 import {shares} from '@/lib/breeding-projects';
 import {resolvedOwnership} from '@/lib/ownership';
 import {weightState} from '@/lib/weight-records';
@@ -7,8 +8,8 @@ import {rawDb} from '@/db';
 import {validateAnimal,validDate,relationshipMatrix,ancestorInfo,validateParentDates,type Animal} from '@/lib/livestock';
 export const dynamic='force-dynamic';
 const json=(data:unknown,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'no-store'}});
-export async function GET(){try{const db=rawDb();const [a,w,h]=await db.batch([db.prepare('SELECT * FROM animals ORDER BY seq DESC'),db.prepare('SELECT * FROM weights ORDER BY date DESC'),db.prepare('SELECT * FROM animal_history ORDER BY createdAt DESC')]);return json({animals:a.results.map((animal:any)=>({...animal,ownershipEvents:resolvedOwnership(h.results.filter((e:any)=>e.animalId===animal.id&&e.action==='ownership').map((e:any)=>({...JSON.parse(e.after).ownershipEvent,operationId:e.operationId,reason:e.reason}))),statusEvents:resolvedStatusEvents(h.results.filter((e:any)=>e.animalId===animal.id&&e.action==='status').map((e:any)=>({...JSON.parse(e.after).statusEvent,operationId:e.operationId,reason:e.reason})) )})),weights:w.results.map((weight:any)=>weightState(weight,h.results)),history:h.results})}catch(e){console.error('Flock load failed',e);return json({error:'Records could not be loaded. Please try again.'},503)}}
-export async function POST(req:Request){try{
+async function handleGET(){try{const db=rawDb();const [a,w,h]=await db.batch([db.prepare('SELECT * FROM animals ORDER BY seq DESC'),db.prepare('SELECT * FROM weights ORDER BY date DESC'),db.prepare('SELECT * FROM animal_history ORDER BY createdAt DESC')]);return json({animals:a.results.map((animal:any)=>({...animal,ownershipEvents:resolvedOwnership(h.results.filter((e:any)=>e.animalId===animal.id&&e.action==='ownership').map((e:any)=>({...JSON.parse(e.after).ownershipEvent,operationId:e.operationId,reason:e.reason}))),statusEvents:resolvedStatusEvents(h.results.filter((e:any)=>e.animalId===animal.id&&e.action==='status').map((e:any)=>({...JSON.parse(e.after).statusEvent,operationId:e.operationId,reason:e.reason})) )})),weights:w.results.map((weight:any)=>weightState(weight,h.results)),history:h.results})}catch(e){console.error('Flock load failed',e);return json({error:'Records could not be loaded. Please try again.'},503)}}
+async function handlePOST(req:Request){try{
  const body:any=await req.json();if(body.year==='all')return json({error:'All Years is read-only. Choose a specific year to save.'},400);
  const year=Number(body.year);if(!Number.isInteger(year)||year<1900||year>new Date().getFullYear())throw Error('Choose a valid year.');
  const db=rawDb();const a=body.data;if(!a||typeof a!=='object')throw Error('Record details are required.');
@@ -98,12 +99,12 @@ export async function POST(req:Request){try{
    }}
    relationshipMatrix(results.map(p=>p.id===id?next:p));
   }else next.archivedAt=body.action==='archive'?now:null;
-  if(next.birthYear!==existing.birthYear){const number=await db.prepare('SELECT COALESCE(MAX(birthSequence),0)+1 AS value FROM animals WHERE birthYear IS ? AND id!=?').bind(next.birthYear,id).first<any>();next.birthSequence=number.value;}
+  if(next.birthYear!==existing.birthYear){const number=await db.prepare('SELECT MAX(COALESCE((SELECT highWater FROM identity_counters WHERE yearKey=COALESCE(?,0)),0),COALESCE((SELECT MAX(birthSequence) FROM animals WHERE birthYear IS ? AND id!=?),0))+1 AS value').bind(next.birthYear,next.birthYear,id).first<any>();next.birthSequence=number.value;}
   const result=await db.batch([
    db.prepare('INSERT INTO animal_history (operationId,animalId,action,reason,before,after,createdAt) SELECT ?,?,?,?,?,?,? FROM animals WHERE id=? AND version=? AND (?=-1 OR (SELECT SUM(version) FROM animals)=?)').bind(operationId,id,body.action,reason,JSON.stringify(existing),JSON.stringify(next),now,id,a.version,graphVersion,graphVersion),
    db.prepare('UPDATE animals SET archivedAt=?,name=?,origin=?,breed=?,sire=?,dam=?,dob=?,birthYear=?,birthSequence=?,pedigreeInfo=?,sex=?,rightTag=?,leftTag=?,eid=?,status=?,version=version+1 WHERE id=? AND version=? AND (?=-1 OR (SELECT SUM(version) FROM animals)=?)').bind(next.archivedAt||null,next.name,next.origin,next.breed,next.sire,next.dam,next.dob,next.birthYear,next.birthSequence??null,next.pedigreeInfo||'{}',next.sex,next.rightTag,next.leftTag,next.eid,next.status,id,a.version,graphVersion,graphVersion)
   ]);
-  if(result[1].meta.changes!==1)return json({error:'This animal changed in another view. Reload before trying again.'},409);
+  if(result[1].meta.changes<1)return json({error:'This animal changed in another view. Reload before trying again.'},409);
  }else if(body.action==='ancestor'){
   validateAnimal({...a,origin:'Purchased',firstYear:new Date().getFullYear()});
   if(!['Male','Female'].includes(a.sex))throw Error('Choose the ancestor sex.');
@@ -135,3 +136,7 @@ export async function POST(req:Request){try{
  }else throw Error('Unknown operation.');
  return json({saved:true,id});
  }catch(e){console.error('Flock save failed',e);const m=e instanceof Error?e.message:'';if(m.includes('UNIQUE'))return json({error:'That EID or animal/date weight already exists. Review the existing record.'},409);if(m.includes('D1')||m.includes('SQLITE')||m.includes('Database'))return json({error:'Unable to save right now. Your form is still available; please retry.'},503);return json({error:m||'Unable to save this record.'},400)}}
+
+export const GET=withReadEpoch(handleGET);
+
+export const POST=withWriteEpoch(handlePOST);

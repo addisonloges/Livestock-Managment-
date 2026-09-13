@@ -1,6 +1,6 @@
 # Current capability coverage — September 13, 2026
 
-Working implementation; not a declaration of whole-project completion. Live remains v36. Local checkpoint e7d2daf plus subsequent changes has not been published. Latest full build passed; 71 automated tests and local/browser integration checks passed. See Connected-build-checkpoint.md for subsequent updates.
+Working implementation; not a declaration of whole-project completion. Live remains v36. Local checkpoints e7d2daf, c9c6865 and 9a0e13d plus subsequent recovery work have not been published. Latest full build passed; 74 automated tests and local/browser integration checks passed. See Connected-build-checkpoint.md for subsequent updates.
 
 | Area | Implemented working capability | Remaining work / boundary |
 |---|---|---|
@@ -36,9 +36,9 @@ Working implementation; not a declaration of whole-project completion. Live rema
 | 30 Calendar | Breeding/project dates, births, reminders, protocols and follow-ups | Month/agenda views and source-record links implemented; richer calendar editing remains |
 | 31 Phone | Responsive views; mobile browser checks; offline shell | Install manifest/icons implemented and browser-validated; notifications and chute workflow refinements remain |
 | 32 Offline | Cached loaded data, durable pending queue, manual selected sync and conflict retention | Current/pending field comparison and deliberate note/reminder merging implemented; other record types use normal editors; files require connection |
-| 33 Recovery | Full media/checksummed exports, retained manual vault, missing-record preview/restore and safety copies | Media-only recovery now implemented; unattended 12-week/12-month retention schedule and full/scoped rollback remain |
+| 33 Recovery | Full media/checksummed exports, retained manual vault, missing-record preview/restore and safety copies | Media-only and full/species rollback implemented with complete safety archives, retained recovery history, non-reused numbers and stale-copy guards; unattended 12-week/12-month scheduling still needs supported hosting infrastructure |
 | 34 Portability | Git source and standard CSV/JSON/TAR exports | Host migration requires adapter/configuration work |
-| 35 Custom fields | Typed definitions, archived fields, profile values and history | More batch/import/report integration |
+| 35 Custom fields | Typed definitions, archived fields, profile values and history | Labeled custom-field CSV export implemented; broader batch/import integration is deferred refinement |
 | 36 Settings | Custom fields and project timing/targets | Per-species year preferences implemented; remaining defaults and backup configuration |
 | 37 Exclusions | No depreciation, forced composition, strict medical inventory, dry-matter modeling, pasture mapping, native app, PIN or mandatory Bluetooth | Preserve these exclusions |
 

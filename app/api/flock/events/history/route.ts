@@ -1,7 +1,8 @@
+import {withReadEpoch} from '@/db/recovery-context';
 import {rawDb} from '@/db';
 import {isUuid} from '@/lib/lambing';
 export const dynamic='force-dynamic';
-export async function GET(req:Request){
+async function handleGET(req:Request){
  const id=new URL(req.url).searchParams.get('id');
  if(!id||!isUuid(id))return Response.json({error:'Choose an event.'},{status:400});
  try{
@@ -9,3 +10,5 @@ export async function GET(req:Request){
   return Response.json({history:result.results.map(r=>({...r,before:JSON.parse(r.before),after:JSON.parse(r.after)}))},{headers:{'Cache-Control':'no-store'}});
  }catch{return Response.json({error:'History could not be loaded.'},{status:503})}
 }
+
+export const GET=withReadEpoch(handleGET);

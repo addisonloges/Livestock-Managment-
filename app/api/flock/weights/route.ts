@@ -1,8 +1,9 @@
+import {withWriteEpoch} from '@/db/recovery-context';
 import {rawDb} from '@/db';
 import {weightState,validateWeight} from '@/lib/weight-records';
 import {statusAt,resolvedStatusEvents} from '@/lib/animal-status';
 import {type Animal,type Weight} from '@/lib/livestock';
-export async function POST(req:Request){try{
+async function handlePOST(req:Request){try{
  const {year:chosen,data:a,action}=await req.json() as any;const year=Number(chosen);
  if(chosen==='all'||!Number.isInteger(year)||year<1900||year>new Date().getFullYear())throw Error('Choose a specific valid year.');
  if(!['weight-edit','weight-void','weight-restore'].includes(action))throw Error('Choose a valid weight action.');
@@ -29,3 +30,5 @@ export async function POST(req:Request){try{
  ]);if(result[1].meta.changes!==1)return Response.json({error:'Weight changed elsewhere. Reload and review.'},{status:409});
  return Response.json({saved:true});
  }catch(e){const message=e instanceof Error?e.message:'Unable to save.';return Response.json({error:message.includes('UNIQUE')?'Another weight already uses this animal and date. Correct that record instead.':message.includes('D1')||message.includes('SQLITE')?'Unable to save. Please retry.':message},{status:400});}}
+
+export const POST=withWriteEpoch(handlePOST);

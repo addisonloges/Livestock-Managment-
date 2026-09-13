@@ -1,9 +1,10 @@
+import {withWriteEpoch} from '@/db/recovery-context';
 import {rawDb} from '@/db';
 import {weightState,validateWeight} from '@/lib/weight-records';
 import {statusAt,resolvedStatusEvents} from '@/lib/animal-status';
 import {type Animal,type Weight} from '@/lib/livestock';
 const uuid=(v:unknown)=>typeof v==='string'&&/^[0-9a-f-]{36}$/i.test(v);
-export async function POST(req:Request){try{
+async function handlePOST(req:Request){try{
  const {year:chosen,action,data:a}=await req.json() as any;const year=Number(chosen);
  if(chosen==='all'||!Number.isInteger(year)||year<1900||year>new Date().getFullYear())throw Error('Choose a specific valid year.');
  if(!a||!uuid(a.id)||!uuid(a.operationId))throw Error('Invalid session identifier.');
@@ -43,3 +44,5 @@ export async function POST(req:Request){try{
  const result=await db.batch(statements);if(result[0].meta.changes!==1)return Response.json({error:'Session changed elsewhere. Reload and review.'},{status:409});
  return Response.json({saved:true,count:affected.length});
  }catch(e){const m=e instanceof Error?e.message:'Unable to save session.';return Response.json({error:/UNIQUE/.test(m)?'A duplicate record was found. Nothing in this batch was saved; reload and review.':/D1|SQLITE/.test(m)?'Session could not be saved. Please retry.':m},{status:400});}}
+
+export const POST=withWriteEpoch(handlePOST);

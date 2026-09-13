@@ -23,7 +23,7 @@ export async function correctLitter(db:any,existing:any,next:Litter,operationId:
  const alreadyMatches=children.length===before.lambs.filter(x=>x.outcome==='Alive').length&&children.every(a=>JSON.parse(a.pedigreeInfo||'{}').litterId===before.id&&a.dob===next.date&&a.birthYear===birthYear&&a.firstYear>=birthYear&&(a.dam||'')===next.damId&&(a.sire||'')===next.sireId)&&weights.filter((w:any)=>children.some(a=>a.id===w.animalId)&&w.session==='Birth · '+before.id).every((w:any)=>w.date===next.date);
  const block=litterArchiveBlock(before,children,all,history,groups,records,weights);
  if(block&&!alreadyMatches)throw Error(block.replaceAll('voiding','correcting'));
- let number=yearChanged?(await db.prepare('SELECT COALESCE(MAX(birthSequence),0) AS value FROM animals WHERE birthYear=?').bind(birthYear).first()).value:0;
+ let number=yearChanged?(await db.prepare('SELECT MAX(COALESCE((SELECT highWater FROM identity_counters WHERE yearKey=?),0),COALESCE((SELECT MAX(birthSequence) FROM animals WHERE birthYear=?),0)) AS value').bind(birthYear,birthYear).first()).value:0;
  const now=new Date().toISOString();
  const corrected={...before,date:next.date,damId:next.damId,sireId:next.sireId,groupId:next.groupId,notes:next.notes,assistance:next.assistance,version:before.version+1};
  const statements=[db.prepare("INSERT INTO animals(id,species,sex,origin,firstYear,createdAt) SELECT NULL,'Sheep','Unknown','Purchased',1900,'' WHERE ? != (SELECT "+stampSql+')').bind(stamp.value)];
