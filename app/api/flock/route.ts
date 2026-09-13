@@ -1,10 +1,10 @@
-import {statuses,statusAt} from '@/lib/animal-status';
+import {statuses,statusAt,resolvedStatusEvents} from '@/lib/animal-status';
 import {updateTagRecords} from '@/lib/tag-records';
 import {rawDb} from '@/db';
 import {validateAnimal,validDate,relationshipMatrix,ancestorInfo,validateParentDates,type Animal} from '@/lib/livestock';
 export const dynamic='force-dynamic';
 const json=(data:unknown,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'no-store'}});
-export async function GET(){try{const db=rawDb();const [a,w,h]=await db.batch([db.prepare('SELECT * FROM animals ORDER BY seq DESC'),db.prepare('SELECT * FROM weights ORDER BY date DESC'),db.prepare('SELECT * FROM animal_history ORDER BY createdAt DESC')]);return json({animals:a.results.map((animal:any)=>({...animal,statusEvents:h.results.filter((e:any)=>e.animalId===animal.id&&e.action==='status').map((e:any)=>({...JSON.parse(e.after).statusEvent,operationId:e.operationId,reason:e.reason})).sort((a:any,b:any)=>a.date.localeCompare(b.date))})),weights:w.results,history:h.results})}catch(e){console.error('Flock load failed',e);return json({error:'Records could not be loaded. Please try again.'},503)}}
+export async function GET(){try{const db=rawDb();const [a,w,h]=await db.batch([db.prepare('SELECT * FROM animals ORDER BY seq DESC'),db.prepare('SELECT * FROM weights ORDER BY date DESC'),db.prepare('SELECT * FROM animal_history ORDER BY createdAt DESC')]);return json({animals:a.results.map((animal:any)=>({...animal,statusEvents:resolvedStatusEvents(h.results.filter((e:any)=>e.animalId===animal.id&&e.action==='status').map((e:any)=>({...JSON.parse(e.after).statusEvent,operationId:e.operationId,reason:e.reason})) )})),weights:w.results,history:h.results})}catch(e){console.error('Flock load failed',e);return json({error:'Records could not be loaded. Please try again.'},503)}}
 export async function POST(req:Request){try{
  const body:any=await req.json();if(body.year==='all')return json({error:'All Years is read-only. Choose a specific year to save.'},400);
  const year=Number(body.year);if(!Number.isInteger(year)||year<1900||year>new Date().getFullYear())throw Error('Choose a valid year.');
@@ -57,17 +57,21 @@ export async function POST(req:Request){try{
   }else if(body.action==='status'){
    if(existing.pedigreeOnly)throw Error('Record status only for flock animals.');
    if(!statuses.includes(a.status))throw Error('Choose a valid status.');
-   if(typeof a.date!=='string'||!validDate(a.date)||Number(a.date.slice(0,4))!==year||a.date>now.slice(0,10)||(existing.dob&&a.date<existing.dob))throw Error('Choose a valid effective date in the selected year, not before birth or in the future.');
-   const {results}=await db.prepare("SELECT after FROM animal_history WHERE animalId=? AND action='status'").bind(id).all<{after:string}>();
-   if(results.some(h=>JSON.parse(h.after).statusEvent.date>=a.date))throw Error('Use a date after the last status event. Earlier event corrections need review.');
-   if(existing.status===a.status)throw Error('This animal already has that status.');
+   if(typeof a.date!=='string'||(a.date&&(!validDate(a.date)||Number(a.date.slice(0,4))!==year||a.date>now.slice(0,10)||(existing.dob&&a.date<existing.dob)))||(!a.date&&a.status==='Active'))throw Error('Choose a valid effective date in the selected year, not before birth or in the future.');
+   const {results}=await db.prepare("SELECT after,operationId FROM animal_history WHERE animalId=? AND action='status'").bind(id).all<{after:string;operationId:string}>();
+   const events=resolvedStatusEvents(results.map(h=>({...JSON.parse(h.after).statusEvent,operationId:h.operationId})));
+   const unresolved=events.find(e=>!e.date);
+   if(unresolved&&(!a.date||unresolved.status!==a.status))throw Error('Enter the missing date for the existing status before adding another status.');
+   if(!a.date&&events.length)throw Error('An undated exit can only be recorded before dated status events.');
+   if(events.some(e=>e.date&&e.date>=a.date))throw Error('Use a date after the last status event. Earlier event corrections need review.');
+   if(existing.status===a.status&&!unresolved)throw Error('This animal already has that status.');
    const isCull=a.status==='Culled'||(['Sold','Transferred'].includes(a.status)&&a.exitReason==='Cull');
    if(isCull&&(typeof a.cullReason!=='string'||!a.cullReason.trim()||a.cullReason.length>200))throw Error('Enter a cull reason, up to 200 characters.');
-   if(a.status!=='Active'){
+   if(a.status!=='Active'&&a.date){
     const later=await db.prepare('SELECT date FROM weights WHERE animalId=? AND date>? LIMIT 1').bind(id,a.date).first();
     if(later)throw Error('There are weight records after this exit date. Review those dates first.');
    }
-   next.status=a.status;next.statusEvent={date:a.date,status:a.status,exitReason:isCull?'Cull':'',cullReason:isCull?a.cullReason.trim():''};
+   next.status=a.status;next.statusEvent={date:a.date,recordedOn:now.slice(0,10),...(unresolved?{supersedes:unresolved.operationId}:{}),status:a.status,exitReason:isCull?'Cull':'',cullReason:isCull?a.cullReason.trim():''};
   }else if(body.action==='tag'){
    const changed=updateTagRecords(existing,a,year);next.tagChange=changed.event;next.rightTag=changed.rightTag;next.leftTag=changed.leftTag;next.eid=changed.eid;next.pedigreeInfo=changed.pedigreeInfo;
    const {results}=await db.prepare('SELECT after FROM animal_history WHERE animalId=? AND action=?').bind(id,'tag').all<{after:string}>();
@@ -109,8 +113,8 @@ export async function POST(req:Request){try{
  }else if(body.action==='weight'){
   if(!validDate(a.date)||Number(a.date.slice(0,4))!==year||a.date>new Date().toISOString().slice(0,10))throw Error('Weight date must be in the selected year and not in the future.');
   const animal=await db.prepare('SELECT * FROM animals WHERE id = ?').bind(a.animalId).first<Animal>();if(!animal||animal.pedigreeOnly||animal.archivedAt||animal.firstYear>year)throw Error('Select an animal present in this year.');if(animal.dob&&a.date<animal.dob)throw Error('Weight date cannot precede birth.');
-  const statusHistory=await db.prepare("SELECT after FROM animal_history WHERE animalId=? AND action='status'").bind(animal.id).all<{after:string}>();
-  const statusEvents=statusHistory.results.map(h=>({...JSON.parse(h.after).statusEvent}));
+  const statusHistory=await db.prepare("SELECT after,operationId FROM animal_history WHERE animalId=? AND action='status'").bind(animal.id).all<{after:string}>();
+  const statusEvents=resolvedStatusEvents(statusHistory.results.map((h:any)=>({...JSON.parse(h.after).statusEvent,operationId:h.operationId})));
   if(statusAt({...animal,statusEvents},a.date)!=='Active'&&!statusEvents.some(e=>e.date===a.date&&e.status!=='Active'))throw Error('This animal was not active on the weight date.');
   const value=Number(a.originalValue);if(!Number.isFinite(value)||value<=0||value>10000||!['lb','kg'].includes(a.unit))throw Error('Enter a positive measured weight and a valid unit.');
   if(!String(a.session||'').trim()||String(a.session).length>200)throw Error('Enter a session name (up to 200 characters).');
