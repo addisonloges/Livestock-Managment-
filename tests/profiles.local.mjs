@@ -25,3 +25,17 @@ assert.equal((await fileAction('remove',{fileId:photo1})).status,200);assert.equ
 assert.equal((await fileAction('restore',{fileId:photo1})).status,200);assert.equal((await fetch(root+'/files?animal='+id+'&file='+photo1)).status,200);
 assert.equal((await fileAction('primary',{fileId:photo1})).status,200);meta=JSON.parse((await animal()).pedigreeInfo);assert.equal(meta.primaryPhotoId,photo1);assert.equal(meta.files.length,3);assert.equal(meta.files.find(f=>f.id===paper).category,'registration');
 const history=(await read()).history.filter(h=>h.animalId===id);assert.equal(history.filter(h=>h.action==='ownership').length,2);assert.ok(history.some(h=>h.action==='file-remove'));console.log('PASS: ownership totals/history/corrections/conflicts, uploads/retries, primary replacement retains older photos, binary retrieval, invalid format/all-years rejection, registration separation, caption edits, remove/restore and audit');
+
+// Details corrections must retain photos, ownership and registration metadata.
+a=await animal();
+const correction={id,version:a.version,operationId:crypto.randomUUID(),name:a.name,breed:a.breed,origin:'Home-raised',info:{registry:'QA Registry',registrationNumber:'00123',notes:'Profile review'},reason:'Correct origin and registration'};
+assert.equal((await post('',{action:'edit',year:'2026',data:{...correction,origin:'Invalid'}})).status,400);
+assert.equal((await post('',{action:'edit',year:'all',data:correction})).status,400);
+assert.equal((await post('',{action:'edit',year:'2026',data:correction})).status,200);
+const edited=await animal();assert.equal(edited.origin,'Home-raised');assert.equal(edited.id,a.id);assert.equal(edited.seq,a.seq);
+const beforeInfo=JSON.parse(a.pedigreeInfo),afterInfo=JSON.parse(edited.pedigreeInfo);
+assert.deepEqual(afterInfo.files,beforeInfo.files);assert.equal(afterInfo.primaryPhotoId,beforeInfo.primaryPhotoId);
+assert.equal(afterInfo.registrationNumber,'00123');assert.deepEqual(edited.ownershipEvents,a.ownershipEvents);
+assert.equal((await post('',{action:'edit',year:'2026',data:{...correction,operationId:crypto.randomUUID()}})).status,409);
+assert.ok((await read()).history.some(h=>h.operationId===correction.operationId&&JSON.parse(h.before).origin==='Purchased'&&JSON.parse(h.after).origin==='Home-raised'));
+console.log('PASS: audited origin correction, invalid origin/read-only/conflict rejection and profile metadata preservation');

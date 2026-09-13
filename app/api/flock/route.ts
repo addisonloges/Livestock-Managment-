@@ -29,6 +29,10 @@ export async function POST(req:Request){try{
    if(typeof a.name!=='string'||typeof a.breed!=='string'||a.name.length>200||a.breed.length>200)throw Error('Name and breed must be 200 characters or fewer.');
    next.name=a.name.trim();next.breed=a.breed.trim();
    if(body.action==='edit'){for(const field of ['rightTag','leftTag','eid'] as const){if(field in a&&String(a[field]||'').trim()!==(existing[field]||''))throw Error('Use Manage tags to correct, retire, or assign a tag.');}}
+   if(body.action==='edit'&&'origin' in a){
+    if(existing.pedigreeOnly){if(a.origin!==existing.origin)throw Error('Unowned ancestors keep their pedigree-only origin.')}
+    else {if(!['Purchased','Home-raised'].includes(a.origin))throw Error('Choose a valid origin.');next.origin=a.origin;}
+   }
    if(body.action==='edit'&&'info' in a){
     if(!a.info||typeof a.info!=='object'||Array.isArray(a.info))throw Error('Invalid registration details.');
     const info=JSON.parse(existing.pedigreeInfo||'{}');
@@ -94,7 +98,7 @@ export async function POST(req:Request){try{
   }else next.archivedAt=body.action==='archive'?now:null;
   const result=await db.batch([
    db.prepare('INSERT INTO animal_history (operationId,animalId,action,reason,before,after,createdAt) SELECT ?,?,?,?,?,?,? FROM animals WHERE id=? AND version=? AND (?=-1 OR (SELECT SUM(version) FROM animals)=?)').bind(operationId,id,body.action,reason,JSON.stringify(existing),JSON.stringify(next),now,id,a.version,graphVersion,graphVersion),
-   db.prepare('UPDATE animals SET archivedAt=?,name=?,breed=?,sire=?,dam=?,dob=?,birthYear=?,pedigreeInfo=?,sex=?,rightTag=?,leftTag=?,eid=?,status=?,version=version+1 WHERE id=? AND version=? AND (?=-1 OR (SELECT SUM(version) FROM animals)=?)').bind(next.archivedAt||null,next.name,next.breed,next.sire,next.dam,next.dob,next.birthYear,next.pedigreeInfo||'{}',next.sex,next.rightTag,next.leftTag,next.eid,next.status,id,a.version,graphVersion,graphVersion)
+   db.prepare('UPDATE animals SET archivedAt=?,name=?,origin=?,breed=?,sire=?,dam=?,dob=?,birthYear=?,pedigreeInfo=?,sex=?,rightTag=?,leftTag=?,eid=?,status=?,version=version+1 WHERE id=? AND version=? AND (?=-1 OR (SELECT SUM(version) FROM animals)=?)').bind(next.archivedAt||null,next.name,next.origin,next.breed,next.sire,next.dam,next.dob,next.birthYear,next.pedigreeInfo||'{}',next.sex,next.rightTag,next.leftTag,next.eid,next.status,id,a.version,graphVersion,graphVersion)
   ]);
   if(result[1].meta.changes!==1)return json({error:'This animal changed in another view. Reload before trying again.'},409);
  }else if(body.action==='ancestor'){

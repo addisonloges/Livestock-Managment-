@@ -4,7 +4,7 @@ Source: Livestock_Management_Dashboard_Agile_Discovery_Company_Review-1.pdf, nin
 
 ## Corrected phase order — controlling update
 
-The user corrected the workflow: animal identity → breeding → lambing/offspring → weights/growth. The earlier Phase 1 completion claim is withdrawn. Phase 1 is in progress and includes registration attachments and dated ownership history as outstanding work. See `Phase-1-completion-and-test-schedule.md`. Preserve existing weighting tools but pause their expansion until offspring context is ready. Historical first-build scope statements below do not override this correction.
+The user corrected the workflow: animal identity → breeding → lambing/offspring → weights/growth. The earlier Phase 1 completion claim is withdrawn. Registration attachments and dated ownership history are implemented; integrated user review remains pending. See `Phase-1-completion-and-test-schedule.md`. Preserve existing weighting tools but pause their expansion until offspring context is ready. Historical first-build scope statements below do not override this correction.
 
 ## Current cumulative checkpoint
 
@@ -62,7 +62,7 @@ Every event has a stable ID, effective date, owning year, species and audit link
 6. **Finances:** animal/general expenses, allocation, sales, current-year/lifetime outcomes.
 7. **Offline and recovery:** offline entry, explicit sync and verified full backup/restore.
 
-Data preservation, exports and verification apply throughout, not only in Phase 7. Phase 1 ownership history and registration attachments remain unfinished. Existing weight features belong to Phase 4 and do not satisfy Phase 1 exit criteria.
+Data preservation, exports and verification apply throughout, not only in Phase 7. Phase 1 ownership history and registration attachments are implemented. Existing weight features belong to Phase 4 and do not satisfy Phase 1 exit criteria.
 
 These are implementation dependency groups, not promised sprint durations. Full-system completion requires all acceptance criteria and actual XR5000 samples, historic data and calculation references.
 

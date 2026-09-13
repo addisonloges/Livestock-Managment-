@@ -66,3 +66,7 @@ Unsaved drafts do not survive refresh/navigation. Batches contain up to 100 meas
 
 
 Latest profile delivery: ownership history, registration attachments, animal photo history and profile-photo updates are now implemented. Review the latest section of Phase-1-completion-and-test-schedule.md; older outstanding-feature statements above are historical. Full attachment backup is still pending; JSON includes metadata, while files are individually downloadable.
+
+## Latest animal-record review
+
+See Phase-1-completion-and-test-schedule.md for verified fixes and the consolidated checklist. See Deferred-improvements.md for the saved sorting request and the user preference to prioritize the remaining build over optional refinements. No live records were changed during the technical review.
