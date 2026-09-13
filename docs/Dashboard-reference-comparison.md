@@ -81,3 +81,12 @@ This checkpoint fixes date-field retention across other form edits and enables t
 There are 37 requirement areas grouped into six dependency phases, not 37 required navigation tabs. Deliver coherent usable sections, verify them before publication, then incorporate user workflow feedback. Do not treat unresolved clinical, allocation or breeding design inputs as permission to invent rules.
 
 Individual weight records now support correction, void, restore and before/after history with reasons. Voided records do not contribute to ADG or latest-weight displays and remain in JSON export. Their animal/date remains reserved to prevent silent replacement; restore and correct that record instead. Corrections remain within the selected event year. Batch weighing and whole-session reversals are still pending; adjusted milestone formulas and XR5000 mapping require their own verified inputs.
+
+
+## Batch weighing package — September 13, 2026
+
+Added batch entry for 1–100 animals with a session name/date, searchable animal list, per-measurement lb/kg, skipped blank rows, and a review step before saving. Saved sessions use stable IDs retained through individual corrections. Creation writes all measurements and creation history atomically. Duplicate animal/date entries, including voided records, require review; no silent overwrite occurs. Session void/restore requires a reason, checks all expected weight versions, retains per-animal history and excludes voided measurements from growth calculations. Restore explicitly covers all currently voided rows, including individually voided measurements.
+
+Validation: local API checks cover invalid-row rejection without partial save, repeated submissions without duplication, mixed units, duplicate animal/date protection, whole-session void/restore, stale-version rejection, and individual corrections retaining session membership. No test records were added to production.
+
+User test as one package: enter a few real measurements with one blank; review and correct before saving; reopen after refresh; correct one measurement and review history; void and restore the session, checking growth/counts; attempt a duplicate date; confirm All Years is read-only. Session drafts are not saved across refresh/navigation; save before leaving. Device/scale import, offline drafts, adjusted milestone formulas and cross-year correction are still separate future work.

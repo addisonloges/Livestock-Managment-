@@ -1,7 +1,7 @@
 import {validDate,type Weight} from './livestock.ts';
 export function weightState(weight:Weight,history:any[]):Weight{
  const changes=history.filter(h=>h.action?.startsWith('weight-')).map(h=>{try{return JSON.parse(h.after)}catch{return null}}).filter(w=>w?.id===weight.id).sort((a,b)=>b.version-a.version);
- return {...weight,voided:changes[0]?.voided||false};
+ return {...weight,voided:changes[0]?.voided||false,batchId:changes.find(w=>w.batchId)?.batchId};
 }
 export function validateWeight(value:any,year:number){
  if(typeof value.date!=='string'||!validDate(value.date)||Number(value.date.slice(0,4))!==year||value.date>new Date().toISOString().slice(0,10))throw Error('Choose a valid weight date in the selected year, not in the future.');
