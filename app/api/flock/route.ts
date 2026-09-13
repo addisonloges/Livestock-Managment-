@@ -60,18 +60,21 @@ export async function POST(req:Request){try{
    if(typeof a.date!=='string'||(a.date&&(!validDate(a.date)||Number(a.date.slice(0,4))!==year||a.date>now.slice(0,10)||(existing.dob&&a.date<existing.dob)))||(!a.date&&a.status==='Active'))throw Error('Choose a valid effective date in the selected year, not before birth or in the future.');
    const {results}=await db.prepare("SELECT after,operationId FROM animal_history WHERE animalId=? AND action='status'").bind(id).all<{after:string;operationId:string}>();
    const events=resolvedStatusEvents(results.map(h=>({...JSON.parse(h.after).statusEvent,operationId:h.operationId})));
-   const unresolved=events.find(e=>!e.date);
+   const correction=a.correctLatest?events.at(-1):undefined;
+   if(a.correctLatest&&!correction)throw Error('There is no status entry to correct.');
+   const prior=correction?events.filter(e=>e.operationId!==correction.operationId):events;
+   const unresolved=prior.find(e=>!e.date);
    if(unresolved&&(!a.date||unresolved.status!==a.status))throw Error('Enter the missing date for the existing status before adding another status.');
-   if(!a.date&&events.length)throw Error('An undated exit can only be recorded before dated status events.');
-   if(events.some(e=>e.date&&e.date>=a.date))throw Error('Use a date after the last status event. Earlier event corrections need review.');
-   if(existing.status===a.status&&!unresolved)throw Error('This animal already has that status.');
+   if(!a.date&&prior.length)throw Error('An undated exit can only be recorded before dated status events.');
+   if(prior.some(e=>e.date&&e.date>=a.date))throw Error('Use a date after the last status event. Earlier event corrections need review.');
+   if(existing.status===a.status&&!unresolved&&!correction)throw Error('This animal already has that status.');
    const isCull=a.status==='Culled'||(['Sold','Transferred'].includes(a.status)&&a.exitReason==='Cull');
    if(isCull&&(typeof a.cullReason!=='string'||!a.cullReason.trim()||a.cullReason.length>200))throw Error('Enter a cull reason, up to 200 characters.');
    if(a.status!=='Active'&&a.date){
     const later=await db.prepare('SELECT date FROM weights WHERE animalId=? AND date>? LIMIT 1').bind(id,a.date).first();
     if(later)throw Error('There are weight records after this exit date. Review those dates first.');
    }
-   next.status=a.status;next.statusEvent={date:a.date,recordedOn:now.slice(0,10),...(unresolved?{supersedes:unresolved.operationId}:{}),status:a.status,exitReason:isCull?'Cull':'',cullReason:isCull?a.cullReason.trim():''};
+   next.status=a.status;next.statusEvent={date:a.date,recordedOn:now.slice(0,10),...((correction||unresolved)?{supersedes:(correction||unresolved)!.operationId}:{}),status:a.status,exitReason:isCull?'Cull':'',cullReason:isCull?a.cullReason.trim():''};
   }else if(body.action==='tag'){
    const changed=updateTagRecords(existing,a,year);next.tagChange=changed.event;next.rightTag=changed.rightTag;next.leftTag=changed.leftTag;next.eid=changed.eid;next.pedigreeInfo=changed.pedigreeInfo;
    const {results}=await db.prepare('SELECT after FROM animal_history WHERE animalId=? AND action=?').bind(id,'tag').all<{after:string}>();
