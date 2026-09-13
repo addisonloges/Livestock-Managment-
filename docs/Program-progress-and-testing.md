@@ -1,6 +1,6 @@
 # Program progress and consolidated review
 
-This is the current cumulative checkpoint, not a claim that all 37 areas are complete. Foundation and history/session work are active. Later phases are not being accelerated past unresolved design decisions. The user is remote on a phone and has asked development to continue without individual feature testing.
+This is the current cumulative checkpoint, not a claim that all 37 areas are complete. Phase 1 foundation is implemented and technically verified; user acceptance remains pending. Phase 2 history/session work is active. See Phase-1-completion-and-test-schedule.md for the 45–60 minute review schedule. Later phases are not being accelerated past unresolved design decisions. The user is remote on a phone and has asked development to continue without individual feature testing.
 
 ## All 37 requirement areas
 

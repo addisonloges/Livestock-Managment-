@@ -2,6 +2,10 @@
 
 Source: Livestock_Management_Dashboard_Agile_Discovery_Company_Review-1.pdf, nine pages, supplied September 11, 2026. This is the source for this implementation. The later formula appendix mentioned in the project conversation is absent from this file. No prior assistant claim about those formulas is treated as verified source material.
 
+## Phase 1 closure — September 13, 2026
+
+Phase 1 foundation implementation is complete; combined user acceptance is pending. See `Phase-1-completion-and-test-schedule.md` for exact scope, final fixes, verification and the 45–60 minute test schedule. This does not close Phase 2 or all 37 areas.
+
 ## Current cumulative checkpoint
 
 See `Program-progress-and-testing.md` and the Build Plan review guide for current capability status and the combined user checklist. Historical first-build statements below are retained as discovery history, not current feature availability. The user has requested continued development without waiting for phone-based testing.
@@ -24,7 +28,7 @@ This first build is a foundation to evaluate. It must not be described as comple
 4. **COI:** Calculate prospective offspring inbreeding from the relationship matrix, not a manually typed score. Exactly 20% remains selectable with a strong warning; strictly greater than 20% is excluded. Incomplete ancestry produces only a known-pedigree estimate and must never be presented as proof of an unrelated mating. Founder unrelatedness is an assumption. Initial screening cannot substitute for pedigree verification.
 5. **Breeding dates:** The PDF supplies no exact gestation, flushing or crayon-change intervals. Keep these configurable and obtain the intended defaults before automated schedules. Preserve sire exposure intervals separately from group membership; uncertain paternity must not silently select one sire.
 6. **Birth versus rearing:** Model a litter event with counts of live/stillborn offspring independently from surviving animal profiles. Biological parentage, foster dam and rearing method need separate fields and timelines.
-7. **Identity validation:** Routine creation requires sex and home-raised full DOB. A future import-specific incomplete-record path must not weaken every creation endpoint. Require duplicate EID review including replaced EIDs. Never treat a visual tag as globally unique.
+7. **Identity validation (updated user decision):** Sex and birth details may remain unknown in routine entry and imports, with nonblocking flags. Supplied invalid values still require correction. Require duplicate EID review including replaced EIDs. Never treat a visual tag as globally unique.
 8. **Weights:** Preserve actual input and original unit. ADG uses distinct chronological dates; same-day readings cannot create an ADG denominator. Backdated readings require recalculation. Adjusted milestone formulas are unspecified and need agreement before implementation.
 9. **Financial allocation:** One business expense is posted once. Allocations distribute that expense; they are not new expenses. Store monetary amounts in integer cents and give rounding remainders a deterministic allocation. Retained values and parent contribution are analytical, separate from realized profit. Clarify whether sale-lot totals or per-animal prices take precedence when both disagree.
 10. **Offline and restore:** Offline writes need UUIDs, idempotency keys and expected record versions. Manual sync only; a failure remains failed until the user retries. Conflict resolution must preserve both versions. Browser-only storage is insufficient as the authoritative flock database. Partial restore, attachment backups and audit reversal require dedicated design and verification.

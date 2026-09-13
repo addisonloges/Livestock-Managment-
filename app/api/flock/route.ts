@@ -110,7 +110,7 @@ export async function POST(req:Request){try{
   validateAnimal(a);if(a.firstYear!==year)throw Error('The first recorded year must match the selected year.');
   const existing=await db.prepare('SELECT id FROM animals WHERE id = ?').bind(id).first();if(existing)return json({saved:true,id});
   const {results}=await db.prepare('SELECT * FROM animals').all<Animal>();
-  for(const role of ['sire','dam'] as const){if(a[role]){const p=results.find(x=>x.id===a[role]);if(!p||p.species!==a.species||p.sex!==(role==='sire'?'Male':'Female'))throw Error('Parent must be a recorded animal of the same species and correct sex.');if(p.dob&&a.dob&&p.dob>=a.dob)throw Error('Parents must be born before their offspring.');if(p.birthYear&&a.birthYear&&p.birthYear>a.birthYear)throw Error('A parent cannot have a later birth year.')}}
+  for(const role of ['sire','dam'] as const){if(a[role]){const p=results.find(x=>x.id===a[role]);if(!p||p.species!==a.species||p.sex!==(role==='sire'?'Male':'Female'))throw Error('Parent must be a recorded animal of the same species and correct sex.');validateParentDates({...a,birthYear:a.dob?Number(a.dob.slice(0,4)):a.birthYear},p);}}
   relationshipMatrix([...results,{id,sire:a.sire||null,dam:a.dam||null}]);
   const vals=[id,a.species,String(a.name||'').trim(),String(a.rightTag||'').trim(),String(a.leftTag||'').trim(),String(a.eid||'').trim()||null,a.sex,a.origin,a.dob||null,a.dob?Number(a.dob.slice(0,4)):a.birthYear??null,year,String(a.breed||'').trim(),a.sire||null,a.dam||null,JSON.stringify(colors),new Date().toISOString()];
   await db.prepare('INSERT INTO animals (id,species,name,rightTag,leftTag,eid,sex,origin,dob,birthYear,firstYear,breed,sire,dam,pedigreeInfo,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(...vals).run();
