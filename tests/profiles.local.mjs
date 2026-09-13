@@ -1,0 +1,27 @@
+import assert from 'node:assert/strict';
+const root='http://127.0.0.1:5173/api/flock',id=crypto.randomUUID();const post=async(path,body)=>{const r=await fetch(root+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});return {status:r.status,data:await r.json()}};const read=async()=>await(await fetch(root)).json();const animal=async()=>(await read()).animals.find(a=>a.id===id);
+assert.equal((await post('',{action:'animal',year:'2026',data:{id,species:'Sheep',name:'Local profile QA',sex:'Unknown',origin:'Purchased',firstYear:2026,birthYear:null}})).status,200);
+let a=await animal();const own={id,version:a.version,operationId:crypto.randomUUID(),date:'2026-01-01',owners:[{name:'Owner A',percent:'60'},{name:'Owner B',percent:'40'}],reason:'Recorded ownership'};
+assert.equal((await post('/ownership',{year:'2026',data:{...own,owners:[{name:'A',percent:'99'}]}})).status,400);
+assert.equal((await post('/ownership',{year:'all',data:own})).status,400);
+assert.equal((await post('/ownership',{year:'2026',data:own})).status,200);assert.equal((await post('/ownership',{year:'2026',data:own})).status,200);
+a=await animal();assert.equal(a.ownershipEvents.length,1);assert.equal(a.ownershipEvents[0].owners[0].basisPoints,6000);
+assert.equal((await post('/ownership',{year:'2026',data:{...own,operationId:crypto.randomUUID()}})).status,409);
+assert.equal((await post('/ownership',{year:'2026',data:{...own,version:a.version,operationId:crypto.randomUUID(),correctLatest:true,date:'2026-02-01'}})).status,200);
+a=await animal();assert.equal(a.ownershipEvents.length,1);assert.equal(a.ownershipEvents[0].date,'2026-02-01');
+const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aF9sAAAAASUVORK5CYII=','base64');
+async function fileAction(action,values={},bytes=null,op=crypto.randomUUID(),year='2026'){const current=await animal();const f=new FormData();for(const [key,value] of Object.entries({animalId:id,year,version:current.version,operationId:op,action,...values}))f.set(key,String(value));if(bytes)f.set('file',new Blob([bytes]),values.name||'test.png');const r=await fetch(root+'/files',{method:'POST',body:f});return {status:r.status,data:await r.json()};}
+const photo1=crypto.randomUUID();assert.equal((await fileAction('upload',{category:'photo',makePrimary:true,caption:'First',takenOn:'2026-03-01'},png,photo1)).status,200);
+assert.equal((await fileAction('upload',{category:'photo'},png,photo1)).status,200);
+a=await animal();let meta=JSON.parse(a.pedigreeInfo);assert.equal(meta.files.length,1);assert.equal(meta.primaryPhotoId,photo1);
+const photo2=crypto.randomUUID();assert.equal((await fileAction('upload',{category:'photo',makePrimary:true,caption:'Later'},png,photo2)).status,200);
+meta=JSON.parse((await animal()).pedigreeInfo);assert.equal(meta.files.length,2);assert.equal(meta.primaryPhotoId,photo2);assert.ok(!meta.files.find(f=>f.id===photo1).removedAt);
+const fetched=await fetch(root+'/files?animal='+id+'&file='+photo1);assert.equal(fetched.status,200);assert.equal(fetched.headers.get('Content-Type'),'image/png');assert.deepEqual(Buffer.from(await fetched.arrayBuffer()),png);
+assert.equal((await fileAction('upload',{category:'photo'},Buffer.from('<html>not an image</html>'))).status,400);
+assert.equal((await fileAction('upload',{category:'photo'},png,crypto.randomUUID(),'all')).status,400);
+const paper=crypto.randomUUID();assert.equal((await fileAction('upload',{category:'registration',name:'paper.pdf'},Buffer.from('%PDF-1.4\n%%EOF'),paper)).status,200);
+assert.equal((await fileAction('details',{fileId:photo1,caption:'Past photo updated',takenOn:'2026-03-02'})).status,200);
+assert.equal((await fileAction('remove',{fileId:photo1})).status,200);assert.equal((await fetch(root+'/files?animal='+id+'&file='+photo1)).status,404);
+assert.equal((await fileAction('restore',{fileId:photo1})).status,200);assert.equal((await fetch(root+'/files?animal='+id+'&file='+photo1)).status,200);
+assert.equal((await fileAction('primary',{fileId:photo1})).status,200);meta=JSON.parse((await animal()).pedigreeInfo);assert.equal(meta.primaryPhotoId,photo1);assert.equal(meta.files.length,3);assert.equal(meta.files.find(f=>f.id===paper).category,'registration');
+const history=(await read()).history.filter(h=>h.animalId===id);assert.equal(history.filter(h=>h.action==='ownership').length,2);assert.ok(history.some(h=>h.action==='file-remove'));console.log('PASS: ownership totals/history/corrections/conflicts, uploads/retries, primary replacement retains older photos, binary retrieval, invalid format/all-years rejection, registration separation, caption edits, remove/restore and audit');

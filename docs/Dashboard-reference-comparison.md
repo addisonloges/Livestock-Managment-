@@ -1,6 +1,6 @@
 # Dashboard reference comparison and implementation order
 
-**Controlling workflow correction:** Phase 1 is animal identity/records and is reopened. Its ownership history and registration attachments are outstanding. Then: Phase 2 breeding; Phase 3 lambing/offspring; Phase 4 weights/growth/performance; Phase 5 operations; Phase 6 finances; Phase 7 offline/recovery. Earlier phase numbering and completion statements below are historical. See Phase-1-completion-and-test-schedule.md. Existing weight tools remain available; their expansion is paused.
+**Controlling workflow correction:** Phase 1 is animal identity/records and is reopened. Ownership history, registration attachments and animal photos are now implemented; integrated user review is pending. Then: Phase 2 breeding; Phase 3 lambing/offspring; Phase 4 weights/growth/performance; Phase 5 operations; Phase 6 finances; Phase 7 offline/recovery. Earlier phase numbering and completion statements below are historical. See Phase-1-completion-and-test-schedule.md. Existing weight tools remain available; their expansion is paused.
 Reviewed September 11, 2026. This is a source comparison and implementation plan, not a claim that the planned features have shipped.
 
 ## Sources and precedence
@@ -96,3 +96,20 @@ User test as one package: enter a few real measurements with one blank; review a
 ## Weight spreadsheet follow-up
 
 CSV/XLSX import and a populated downloadable weighing template now feed the reviewed batch workflow. Column mapping, worksheet selection, explicit unmatched/ambiguous-animal review and draft collision checks are included. See Weights-package-handoff.md for the combined additions, verification and deferred user checklist. User is remote on a phone and requested continued work without waiting for testing. Device-specific scale compatibility and retired-EID matching are not claimed.
+
+
+## Reference recheck — user wants a combination, September 13
+
+Re-read the supplied Herd_Manager_V2_edit_animal_actually_fixed.html directly (renderAnimals, tableEditor and renderWeights). User wants the reference workflow combined with the current durable records, history and validation, not a parallel replacement product.
+
+Concrete reference patterns to retain/adapt:
+- Animal workspace: compact searchable table with identity, multiple tags, sex/status, breed/DOB, parents, notes and explicit editing actions.
+- Breeding and lambing: distinct group/event workflows; offspring records drive growth work.
+- Weights (Phase 4): condensed overview with recent records (reference caps at 25), milestone completeness, and an optional expanded lamb matrix. Birth weights belong to lambing; later growth records link to the same offspring identity.
+- Explicit controls to open focused entry/editing instead of putting a large input grid in the main overview.
+
+Latest user override: do not copy the reference popup's every-lamb scrolling list either. Use a compact selection-first entry pattern; refine it when Phase 4 starts. The reference's condensed overview/optional matrix distinction is useful, but implementation must honor this new constraint.
+
+Combine those interaction patterns with immutable IDs, server-backed saves, explicit errors, nonblocking missing detail flags, pedigree validation, audited corrections/retirements and exports. Do not copy repeated function overrides or browser-local authoritative storage. Keep all lifetime animal identities; adapt the reference's breeding-stock/offspring views without deleting non-retained offspring. Do not adopt keep/watch/cull vocabulary as a final Management Flags design; that remains open.
+
+Current action: weights are hidden. Next animal-record UI work must consult this comparison and the reference's compact animal workspace before implementation. This note does not claim a full reference redesign has shipped.

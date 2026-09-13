@@ -16,7 +16,7 @@ The September 13 completion claim is withdrawn following the user's workflow cor
 
 Available: identity/editing, tags/EID/history, imports, missing-detail flags, registration text, status history, pedigree, notes and exports.
 
-Outstanding: dated ownership history and registration attachments. Ownership precision, overlapping periods and correction behavior need a bounded design before code. Attachment storage and registration association need implementation and verification. These are Phase 1 backlog items, not completed features.
+Implemented in the latest profile package: dated ownership history and registration attachments, plus animal photo history. Ownership uses 0.01% shares, exact totals, effective dates and latest-entry corrections. See the implementation/verification section below. Outstanding: integrated user acceptance.
 
 Acceptance requires a coherent animal profile workflow across those areas; save/reload, identity integrity, incomplete-data handling, species/year boundaries, imports and export must be verified together. User acceptance remains pending. Do not mark this phase complete because weight tools or a subset of foundation tests pass.
 
@@ -40,7 +40,7 @@ Data preservation, exports and technical verification run throughout. Existing w
 | Ownership/registration/history | 15–20 min | Dated ownership, registration attachments, status/exit reasons, audit and restore |
 | Pedigree/search/export | 10–15 min | Both family lines, unowned ancestors, current/former identifiers, permanent IDs and parent references |
 
-Total: 40–55 minutes in one combined review, after outstanding implementation. No calendar event is scheduled. Record one consolidated issue list with animal ID, action, expected and observed results. Weight growth, session review and mating decisions are not Phase 1 acceptance tests.
+Total: 40–55 minutes in one combined review when desktop access is convenient. No calendar event is scheduled. Record one consolidated issue list with animal ID, action, expected and observed results. Weight growth, session review and mating decisions are not Phase 1 acceptance tests.
 
 
 ## Weight section visibility
@@ -48,3 +48,15 @@ Total: 40–55 minutes in one combined review, after outstanding implementation.
 User requested hiding weights until its phase. The Weights tab, overview metric, animal-list weight column and profile weight controls are hidden until Phase 4. Saved measurements, history and full JSON export remain intact. Earlier references to weight tools staying visible are superseded by this instruction.
 
 Phase 4 weight-entry design correction: user rejects a mass-scrolling animal list. Replace that entry pattern before re-enabling weights. Start with explicit animal/group selection and a compact focused entry or bounded-page workflow; final interaction design remains to be reviewed. Do not treat the existing all-animal scrolling form as accepted.
+
+
+Navigation correction: remove the standalone ewe/doe relationship tab. Integrate those calculations into future breeding decisions rather than bringing back that separate tab. Hide the premature breeding screen until Phase 2. Phase 1 navigation remains Animals, Pedigree, Deleted animals and Build plan. Pedigree data and relationship calculation code are retained.
+
+
+## Profile implementation update
+
+Implemented: named ownership shares with 0.01% precision and exact 100% totals, effective dates, explicitly unknown ownership, conflict checks, and audited latest-entry correction. No ownership is inferred for existing animals.
+
+Implemented: photos on each profile, a selected current profile photo, retained past photos with optional date/caption, four-photo history pages, and restorable removal. New primary photos do not delete prior photos. Registration PDF/image uploads appear directly in the registration area and retain the registration text at attachment time. Files use object storage, with metadata and change history in the database. Limits: 10 MB/file; JPEG, PNG, WebP, plus PDF for registration; HEIC conversion is not implemented. JSON export includes file metadata/history, not the binary files; full attachment backup belongs to Phase 7. Individual files can be downloaded.
+
+Local API acceptance passed for ownership totals/dates/corrections/conflicts, file save and repeat-save, retrieving original bytes, replacing primary photos without losing old photos, format/read-only validation, registration separation, caption/date edits, removal/restoration and history. Add these tests to the combined profile review; user workflow acceptance remains pending. Ewe relationships are no longer a standalone tab; breeding and weights stay hidden until their phases.

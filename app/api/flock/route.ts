@@ -1,3 +1,4 @@
+import {resolvedOwnership} from '@/lib/ownership';
 import {weightState} from '@/lib/weight-records';
 import {statuses,statusAt,resolvedStatusEvents} from '@/lib/animal-status';
 import {updateTagRecords} from '@/lib/tag-records';
@@ -5,7 +6,7 @@ import {rawDb} from '@/db';
 import {validateAnimal,validDate,relationshipMatrix,ancestorInfo,validateParentDates,type Animal} from '@/lib/livestock';
 export const dynamic='force-dynamic';
 const json=(data:unknown,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'no-store'}});
-export async function GET(){try{const db=rawDb();const [a,w,h]=await db.batch([db.prepare('SELECT * FROM animals ORDER BY seq DESC'),db.prepare('SELECT * FROM weights ORDER BY date DESC'),db.prepare('SELECT * FROM animal_history ORDER BY createdAt DESC')]);return json({animals:a.results.map((animal:any)=>({...animal,statusEvents:resolvedStatusEvents(h.results.filter((e:any)=>e.animalId===animal.id&&e.action==='status').map((e:any)=>({...JSON.parse(e.after).statusEvent,operationId:e.operationId,reason:e.reason})) )})),weights:w.results.map((weight:any)=>weightState(weight,h.results)),history:h.results})}catch(e){console.error('Flock load failed',e);return json({error:'Records could not be loaded. Please try again.'},503)}}
+export async function GET(){try{const db=rawDb();const [a,w,h]=await db.batch([db.prepare('SELECT * FROM animals ORDER BY seq DESC'),db.prepare('SELECT * FROM weights ORDER BY date DESC'),db.prepare('SELECT * FROM animal_history ORDER BY createdAt DESC')]);return json({animals:a.results.map((animal:any)=>({...animal,ownershipEvents:resolvedOwnership(h.results.filter((e:any)=>e.animalId===animal.id&&e.action==='ownership').map((e:any)=>({...JSON.parse(e.after).ownershipEvent,operationId:e.operationId,reason:e.reason}))),statusEvents:resolvedStatusEvents(h.results.filter((e:any)=>e.animalId===animal.id&&e.action==='status').map((e:any)=>({...JSON.parse(e.after).statusEvent,operationId:e.operationId,reason:e.reason})) )})),weights:w.results.map((weight:any)=>weightState(weight,h.results)),history:h.results})}catch(e){console.error('Flock load failed',e);return json({error:'Records could not be loaded. Please try again.'},503)}}
 export async function POST(req:Request){try{
  const body:any=await req.json();if(body.year==='all')return json({error:'All Years is read-only. Choose a specific year to save.'},400);
  const year=Number(body.year);if(!Number.isInteger(year)||year<1900||year>new Date().getFullYear())throw Error('Choose a valid year.');
@@ -48,7 +49,7 @@ export async function POST(req:Request){try{
     if(!existing.pedigreeOnly)throw Error('This action only edits pedigree-only records.');
     if(!next.name)throw Error('Enter an ancestor name or identifying label.');
     next.dob=a.dob||null;next.birthYear=next.dob?Number(next.dob.slice(0,4)):a.birthYear??null;
-    next.pedigreeInfo=JSON.stringify(ancestorInfo(a.info));
+    next.pedigreeInfo=JSON.stringify({...JSON.parse(existing.pedigreeInfo||'{}'),...ancestorInfo(a.info)});
     validateAnimal({...next,origin:'Purchased',firstYear:new Date().getFullYear()});
     const {results}=await db.prepare('SELECT * FROM animals').all<Animal>();
     graphVersion=results.reduce((sum,p)=>sum+p.version,0);

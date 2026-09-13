@@ -1,6 +1,6 @@
 # Program progress and consolidated review
 
-**Controlling workflow correction:** Phase 1 is animal identity/records and is reopened. Its ownership history and registration attachments are outstanding. Then: Phase 2 breeding; Phase 3 lambing/offspring; Phase 4 weights/growth/performance; Phase 5 operations; Phase 6 finances; Phase 7 offline/recovery. Earlier phase numbering and completion statements below are historical. See Phase-1-completion-and-test-schedule.md. Existing weight tools remain available; their expansion is paused.
+**Controlling workflow correction:** Phase 1 is animal identity/records and is reopened. Ownership history, registration attachments and animal photos are now implemented; integrated user review is pending. Then: Phase 2 breeding; Phase 3 lambing/offspring; Phase 4 weights/growth/performance; Phase 5 operations; Phase 6 finances; Phase 7 offline/recovery. Earlier phase numbering and completion statements below are historical. See Phase-1-completion-and-test-schedule.md. Existing weight tools remain available; their expansion is paused.
 This is the current cumulative checkpoint, not a claim that all 37 areas are complete. Phase 1 animal identity and records is in progress; prior completion labeling is withdrawn. See Phase-1-completion-and-test-schedule.md for the 45–60 minute review schedule. Later phases are not being accelerated past unresolved design decisions. The user is remote on a phone and has asked development to continue without individual feature testing.
 
 ## All 37 requirement areas
@@ -63,3 +63,6 @@ Retired tag/EID matches in weight imports are suggestions that require explicit 
 Recent weight API checks passed for atomic validation, repeat-save idempotency, unit conversion, duplicate rejection, stale versions, individual and session void/restore, and session membership after correction. Import tests cover exact/current/retired/reused identifiers, contradictory identity columns, additional tags, blank measurements, date/unit normalization and CSV safety. Production build/type checks pass. Production records were not used for tests. The cumulative user review remains pending.
 
 Unsaved drafts do not survive refresh/navigation. Batches contain up to 100 measurements on one date. PDF import is assisted. Scale-specific XR5000 samples, adjusted growth formulas, breeding timing, ownership precision, feed allocation, management-watch design and central inventory-warning placement remain unresolved or future work.
+
+
+Latest profile delivery: ownership history, registration attachments, animal photo history and profile-photo updates are now implemented. Review the latest section of Phase-1-completion-and-test-schedule.md; older outstanding-feature statements above are historical. Full attachment backup is still pending; JSON includes metadata, while files are individually downloadable.
