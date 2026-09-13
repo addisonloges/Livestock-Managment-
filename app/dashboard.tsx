@@ -30,7 +30,7 @@ export default function Dashboard(){
  const [flagRules,setFlagRules]=useState<FlagRules>({sex:true,birth:true});
  useEffect(()=>{try{const saved=JSON.parse(localStorage.getItem('flock-flag-rules')||'null');if(saved&&typeof saved.sex==='boolean'&&typeof saved.birth==='boolean')setFlagRules(saved)}catch{}},[]);
  function changeFlagRule(key:keyof FlagRules,value:boolean){const next={...flagRules,[key]:value};setFlagRules(next);try{localStorage.setItem('flock-flag-rules',JSON.stringify(next))}catch{}}
- const [statusFilter,setStatusFilter]=useState('all'),[cullFilter,setCullFilter]=useState('');
+ const [statusFilter,setStatusFilter]=useState('Active'),[cullFilter,setCullFilter]=useState('');
  const [pedigreeRoot,setPedigreeRoot]=useState('');
  const [history,setHistory]=useState<any[]>([]);const [voidedWeights,setVoidedWeights]=useState<Weight[]>([]);
  const [animals,setAnimals]=useState<Animal[]>([]),[weights,setWeights]=useState<Weight[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState('');
