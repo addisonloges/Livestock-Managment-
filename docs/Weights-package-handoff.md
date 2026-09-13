@@ -26,4 +26,9 @@ Local API tests passed for batch saving, invalid-row rejection without partial s
 
 ## Remaining limits
 
-Drafts are not persisted across refresh/navigation. A batch has one session date; file dates, if supplied, must agree. Older XLS must be saved as XLSX. Device-specific XR5000 parsing requires a representative export; this package does not claim that compatibility. Retired EID matching, offline drafts, adjusted milestone formulas and cross-year weight corrections remain future work. No user testing is needed before continuing development; this checklist is retained for a later combined review.
+Drafts are not persisted across refresh/navigation. A batch has one session date; file dates, if supplied, must agree. Older XLS must be saved as XLSX. Device-specific XR5000 parsing requires a representative export; this package does not claim that compatibility. Offline drafts, adjusted milestone formulas and cross-year weight corrections remain future work. No user testing is needed before continuing development; this checklist is retained for a later combined review.
+
+
+## Final follow-up
+
+Retired tag/EID review and saved-session CSV export are now included. Retired identifier suggestions require explicit selection; reused identifiers remain ambiguous. Weight events now read clearly in the animal profile history. The cumulative program summary/checklist is in Program-progress-and-testing.md and the Build Plan tab.

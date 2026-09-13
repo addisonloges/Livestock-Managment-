@@ -2,6 +2,10 @@
 
 Source: Livestock_Management_Dashboard_Agile_Discovery_Company_Review-1.pdf, nine pages, supplied September 11, 2026. This is the source for this implementation. The later formula appendix mentioned in the project conversation is absent from this file. No prior assistant claim about those formulas is treated as verified source material.
 
+## Current cumulative checkpoint
+
+See `Program-progress-and-testing.md` and the Build Plan review guide for current capability status and the combined user checklist. Historical first-build statements below are retained as discovery history, not current feature availability. The user has requested continued development without waiting for phone-based testing.
+
 ## Review conclusion
 
 **September 12 discovery changes:** `Printed-review-discovery-backlog.md` records the user's printed-review additions and overrides conflicting older statements. This update is requirements/backlog only, not implementation or completion. Feed-cost allocation, favorites versus management watch flags, and central-dashboard inventory warning placement remain open decisions. Treatment-warning thresholds also need product-specific design inputs. Follow the original workflow; Composite 4 remains in the reproduction phase.
