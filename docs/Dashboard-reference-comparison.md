@@ -74,3 +74,10 @@ This comparison organizes the existing scope; it does not authorize deleting, re
 Animal records remain the active phase. Implemented: multiple tags per ear, explicit tag swaps, retirement history, nonblocking missing tag colors, spreadsheet tag/color mapping, downloadable import template, dated status exits, unknown exit dates with flags, and audited correction of the latest status entry. The two held 2026 inventory animals were saved separately: green right tag 04 died April 9, 2026; right tag 2015 sold with date unknown. These are completed live-data actions, not instructions to repeat imports.
 
 This checkpoint fixes date-field retention across other form edits and enables the user's selected sex/birth flags by default on new devices. It does not complete the whole history/session phase. Next bounded work: review audited weight correction/void and session behavior before adding batch workflows. Ownership history, registration attachments and full session reversal remain unfinished. Composite 4 stays in the later reproduction phase; feed allocation, watch-list design and inventory warning placement remain open.
+
+
+## Section delivery agreement
+
+There are 37 requirement areas grouped into six dependency phases, not 37 required navigation tabs. Deliver coherent usable sections, verify them before publication, then incorporate user workflow feedback. Do not treat unresolved clinical, allocation or breeding design inputs as permission to invent rules.
+
+Individual weight records now support correction, void, restore and before/after history with reasons. Voided records do not contribute to ADG or latest-weight displays and remain in JSON export. Their animal/date remains reserved to prevent silent replacement; restore and correct that record instead. Corrections remain within the selected event year. Batch weighing and whole-session reversals are still pending; adjusted milestone formulas and XR5000 mapping require their own verified inputs.
