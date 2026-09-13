@@ -41,3 +41,10 @@ Data preservation, exports and technical verification run throughout. Existing w
 | Pedigree/search/export | 10–15 min | Both family lines, unowned ancestors, current/former identifiers, permanent IDs and parent references |
 
 Total: 40–55 minutes in one combined review, after outstanding implementation. No calendar event is scheduled. Record one consolidated issue list with animal ID, action, expected and observed results. Weight growth, session review and mating decisions are not Phase 1 acceptance tests.
+
+
+## Weight section visibility
+
+User requested hiding weights until its phase. The Weights tab, overview metric, animal-list weight column and profile weight controls are hidden until Phase 4. Saved measurements, history and full JSON export remain intact. Earlier references to weight tools staying visible are superseded by this instruction.
+
+Phase 4 weight-entry design correction: user rejects a mass-scrolling animal list. Replace that entry pattern before re-enabling weights. Start with explicit animal/group selection and a compact focused entry or bounded-page workflow; final interaction design remains to be reviewed. Do not treat the existing all-animal scrolling form as accepted.
