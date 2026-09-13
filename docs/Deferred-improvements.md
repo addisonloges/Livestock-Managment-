@@ -11,3 +11,11 @@ The user wants the whole application built before spending remaining usage on op
 ## Updated missing-tag/color rule
 
 Blank ear tags mean no tag. Blank colors also produce no missing-color flag, including entered tag numbers. This supersedes the earlier color-warning preference.
+
+## Batch editor refinement
+
+User requested improving the batch editor later. Specific changes remain open. Keep the working table and defer polish while building the remaining sections.
+
+## Navigation and main dashboard
+
+Use one Section dropdown instead of an expanding work-area tab row; species and year remain separate. The main Dashboard should become a powerful informational overview with summaries, alerts and drill-downs during the reports/dashboard phase. Do not confuse that future overview with data-entry screens.

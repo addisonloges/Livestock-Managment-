@@ -70,3 +70,13 @@ Latest profile delivery: ownership history, registration attachments, animal pho
 ## Latest animal-record review
 
 See Phase-1-completion-and-test-schedule.md for verified fixes and the consolidated checklist. See Deferred-improvements.md for the saved sorting request and the user preference to prioritize the remaining build over optional refinements. No live records were changed during the technical review.
+
+## Breeding groups and navigation package
+
+Section dropdown replaces the growing work-area tab row. Species/year remain independent. The main informational dashboard is deferred to reports; see Deferred-improvements.md.
+
+Implemented saved breeding groups with permanent group IDs, one male/multiple females, start/end dates spanning years, Planned/Exposed/Completed/Cancelled state, notes, change reasons/history, member selection in pages of ten, offspring known-pedigree COI, within-group relationships, overlap warnings and JSON export. A male may serve multiple groups; group edits retain prior membership snapshots. Planned COI above 20% is rejected; actual historical exposures remain recordable, without declaring them recommended. Unknown ancestry is not proof of unrelatedness. No timing or paternity is inferred. Edit cross-year groups from their start year; All Years is read-only.
+
+Local tests passed creation, idempotent retry, same male in multiple groups, exposure update, history, version conflict, cross-year dates, membership/species validation and planned COI cutoff. No live farm records were added by tests.
+
+Combined review later: create a planned group, choose members/ram, inspect COI and relationship review, save/reopen, update to Exposed, inspect history, reuse the ram in a second group, export records and verify cross-year display. Remaining Phase 2: pregnancy checks, Composite 4 saved targets and numeric breed composition, project-based comparisons, configurable schedules. This package is not all of Phase 2.
