@@ -23,7 +23,7 @@ function download(name:string,text:string,type:string){const u=URL.createObjectU
 function freshAnimal(species:string,year:string){return {id:crypto.randomUUID(),species,name:'',rightTag:'',rightTagColor:'',leftTag:'',leftTagColor:'',eid:'',sex:'Unknown',origin:'Purchased',dob:'',birthYear:'',firstYear:year,breed:'',sire:'',dam:''}}
 export default function Dashboard(){
  const [species,setSpecies]=useState('Sheep'),[year,setYear]=useState(String(currentYear)),[view,setView]=useState('animals'),[query,setQuery]=useState('');
- const [flagRules,setFlagRules]=useState<FlagRules>({sex:false,birth:false});
+ const [flagRules,setFlagRules]=useState<FlagRules>({sex:true,birth:true});
  useEffect(()=>{try{const saved=JSON.parse(localStorage.getItem('flock-flag-rules')||'null');if(saved&&typeof saved.sex==='boolean'&&typeof saved.birth==='boolean')setFlagRules(saved)}catch{}},[]);
  function changeFlagRule(key:keyof FlagRules,value:boolean){const next={...flagRules,[key]:value};setFlagRules(next);try{localStorage.setItem('flock-flag-rules',JSON.stringify(next))}catch{}}
  const [statusFilter,setStatusFilter]=useState('all'),[cullFilter,setCullFilter]=useState('');

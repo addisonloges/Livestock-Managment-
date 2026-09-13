@@ -15,7 +15,7 @@ Reviewed September 11, 2026. This is a source comparison and implementation plan
 
 1. This is a livestock management application. Naming is deferred.
 2. Preserve lifetime animal identities, species boundaries, history, imports, and existing pedigree links. Annual events belong to their dates; do not create a fresh copy of an animal each year.
-3. Missing sex and missing both birth date and birth year are allowed and should be flagged, per the user's latest answers. Those flags do not block saving. Invalid supplied values, identity conflicts, and pedigree cycles still require correction. Current flag controls are device preferences; their code defaults are false, so the user's chosen true values are not a guaranteed default on a new device.
+3. Missing sex and missing both birth date and birth year are allowed and should be flagged, per the user's latest answers. Those flags do not block saving. Invalid supplied values, identity conflicts, and pedigree cycles still require correction. Missing-sex and missing-birth flags default to enabled on new devices, following the user's decision. Explicit saved device preferences still take precedence.
 4. Support maternal and paternal ancestry across generations, including animals never owned. Keep unowned ancestors out of the flock-root animal chooser and flock counts, while retaining them in parent selection, ancestor editing, and calculations.
 5. CSV, Excel, and PDF imports require a reviewable preview. Preserve sire/dam registrations and names. PDF extraction is assisted, not guaranteed recognition of every pedigree layout. Missing data stays unknown.
 6. Composite 4 is a selectable breeding project, with editable targets initially Dorper 25%, Romanov 25%, Katahdin 25%, St. Croix 25%. Do not impose those targets on the entire flock or every future project.
@@ -67,3 +67,10 @@ Reviewed September 11, 2026. This is a source comparison and implementation plan
 
 This comparison organizes the existing scope; it does not authorize deleting, remapping, or reimporting any live animal records. No application or live-data changes were made during this comparison.
 
+
+
+## Current checkpoint — September 13, 2026
+
+Animal records remain the active phase. Implemented: multiple tags per ear, explicit tag swaps, retirement history, nonblocking missing tag colors, spreadsheet tag/color mapping, downloadable import template, dated status exits, unknown exit dates with flags, and audited correction of the latest status entry. The two held 2026 inventory animals were saved separately: green right tag 04 died April 9, 2026; right tag 2015 sold with date unknown. These are completed live-data actions, not instructions to repeat imports.
+
+This checkpoint fixes date-field retention across other form edits and enables the user's selected sex/birth flags by default on new devices. It does not complete the whole history/session phase. Next bounded work: review audited weight correction/void and session behavior before adding batch workflows. Ownership history, registration attachments and full session reversal remain unfinished. Composite 4 stays in the later reproduction phase; feed allocation, watch-list design and inventory warning placement remain open.
