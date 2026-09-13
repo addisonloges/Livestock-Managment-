@@ -1,0 +1,16 @@
+import {type Animal,validDate,validateParentDates,validateAnimal} from './livestock.ts';
+import {offspring} from './breeding-projects.ts';
+import {type BreedingGroup} from './breeding.ts';
+export type LambEntry={id:string;name:string;sex:string;rightTag:string;leftTag:string;rightTagColor:string;leftTagColor:string;eid:string;outcome:'Alive'|'Stillborn';birthWeight:number|null;unit:'lb'|'kg';cause:string};
+export type Litter={id:string;version:number;species:string;date:string;damId:string;sireId:string;groupId:string;assistance:string;notes:string;lambs:LambEntry[];voided?:boolean;voidedAt?:string;voidSnapshot?:Animal[]};
+export const isUuid=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+export function validateLitter(l:Litter,animals:Animal[],groups:BreedingGroup[]){
+ if(!isUuid(l.id)||!['Sheep','Goats'].includes(l.species)||!validDate(l.date)||l.date>new Date().toISOString().slice(0,10))throw Error('Choose a valid birth date, not in the future.');
+ if(!Array.isArray(l.lambs)||!l.lambs.length||l.lambs.length>12||new Set(l.lambs.map(x=>x.id)).size!==l.lambs.length)throw Error('Enter 1–12 distinct offspring.');
+ for(const field of ['notes','assistance','damId','sireId','groupId'] as const)if(typeof l[field]!=='string'||l[field].length>2000)throw Error('Invalid litter details.');
+ const dam=animals.find(a=>a.id===l.damId),sire=animals.find(a=>a.id===l.sireId);
+ for(const [id,parent,sex] of [[l.damId,dam,'Female'],[l.sireId,sire,'Male']] as const){if(id&&(!parent||parent.species!==l.species||parent.sex!==sex))throw Error('Choose a parent of the correct species and sex.');if(parent)validateParentDates({dob:l.date,birthYear:Number(l.date.slice(0,4))} as Animal,parent);}
+ if(l.groupId){const g=groups.find(g=>g.id===l.groupId);if(!g||g.species!==l.species||!g.start||g.start>l.date||!l.damId||!g.eweIds.includes(l.damId))throw Error('Choose a recorded exposure containing this dam before the birth.');if(g.exposures?.some(x=>x.eweId===l.damId)&&!g.exposures.some(x=>x.eweId===l.damId&&x.start<l.date))throw Error('This female’s individual exposure must precede the birth.');if(l.sireId&&l.sireId!==g.ramId)throw Error('Selected sire differs from this exposure. Leave the group blank for separately confirmed parentage.');}
+ const eids=new Set<string>();for(const x of l.lambs){if(!isUuid(x.id)||!['Alive','Stillborn'].includes(x.outcome))throw Error('Invalid offspring entry.');for(const k of ['name','rightTag','leftTag','rightTagColor','leftTagColor','eid','cause'] as const)if(typeof x[k]!=='string'||x[k].length>200)throw Error('Offspring text fields must be 200 characters or fewer.');validateAnimal({species:l.species,sex:x.sex,origin:'Home-raised',dob:l.date,birthYear:Number(l.date.slice(0,4)),firstYear:Number(l.date.slice(0,4))});if(x.birthWeight!==null&&(!Number.isFinite(x.birthWeight)||x.birthWeight<=0||x.birthWeight>100||!['lb','kg'].includes(x.unit)))throw Error('Enter a positive birth weight up to 100, or leave it blank.');if(x.eid.trim()){if(eids.has(x.eid.trim()))throw Error('Duplicate EID in this litter.');eids.add(x.eid.trim());}}
+ return {dam,sire,composition:dam&&sire?offspring(sire,dam):[]};
+}

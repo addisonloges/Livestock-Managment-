@@ -1,0 +1,5 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {validateLitter} from '../lib/lambing.ts';
+const entry=()=>({id:crypto.randomUUID(),name:'',sex:'Unknown',rightTag:'',leftTag:'',rightTagColor:'',leftTagColor:'',eid:'',outcome:'Alive',birthWeight:null,unit:'lb',cause:''});
+const litter=()=>({id:crypto.randomUUID(),version:0,species:'Sheep',date:'2026-04-01',damId:'',sireId:'',groupId:'',assistance:'',notes:'',lambs:[entry(),{...entry(),outcome:'Stillborn'}]});
+test('unknown identity and stillborn are accepted without inventing parents or composition',()=>{const l=litter();assert.deepEqual(validateLitter(l,[],[]).composition,[]);assert.throws(()=>validateLitter({...l,lambs:[l.lambs[0],l.lambs[0]]},[],[]));assert.throws(()=>validateLitter({...l,lambs:[{...entry(),birthWeight:-1}]},[],[]));});
+test('litter EIDs and exposure parentage are validated',()=>{const l=litter();assert.throws(()=>validateLitter({...l,lambs:[{...entry(),eid:'123'},{...entry(),eid:'123'}]},[],[]));assert.throws(()=>validateLitter({...l,groupId:'not-recorded'},[],[]));assert.throws(()=>validateLitter({...l,damId:'missing'},[],[]));});

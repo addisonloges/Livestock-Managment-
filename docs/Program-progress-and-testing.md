@@ -80,3 +80,7 @@ Implemented saved breeding groups with permanent group IDs, one male/multiple fe
 Local tests passed creation, idempotent retry, same male in multiple groups, exposure update, history, version conflict, cross-year dates, membership/species validation and planned COI cutoff. No live farm records were added by tests.
 
 Combined review later: create a planned group, choose members/ram, inspect COI and relationship review, save/reopen, update to Exposed, inspect history, reuse the ram in a second group, export records and verify cross-year display. Remaining Phase 2: pregnancy checks, Composite 4 saved targets and numeric breed composition, project-based comparisons, configurable schedules. This package is not all of Phase 2.
+
+## Delivery direction — connected build
+
+User requests all sections built together without phase-by-phase stops. Continue integrated implementation in dependency order and verify throughout; user review may follow the larger build. Do not call unresolved rules complete.

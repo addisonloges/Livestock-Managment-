@@ -29,6 +29,27 @@
       "when": 1789312200796,
       "tag": "0003_puzzling_lucky_pierre",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1789314069136,
+      "tag": "0004_living_barracuda",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1789314428962,
+      "tag": "0005_fresh_xorn",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1789321366455,
+      "tag": "0006_misty_the_initiative",
+      "breakpoints": true
     }
   ]
 }

@@ -1,3 +1,4 @@
+import {shares} from '@/lib/breeding-projects';
 import {resolvedOwnership} from '@/lib/ownership';
 import {weightState} from '@/lib/weight-records';
 import {statuses,statusAt,resolvedStatusEvents} from '@/lib/animal-status';
@@ -37,6 +38,7 @@ export async function POST(req:Request){try{
     if(!a.info||typeof a.info!=='object'||Array.isArray(a.info))throw Error('Invalid registration details.');
     const info=JSON.parse(existing.pedigreeInfo||'{}');
     for(const field of ['registry','registrationNumber','membershipId','flockNameId','farm','notes']){if(field in a.info){const value=a.info[field];if(typeof value!=='string'||value.length>(field==='notes'?2000:200))throw Error('Registration details or notes exceed the allowed length.');info[field]=value.trim();}}
+    if('breedComposition' in a.info){info.breedComposition=shares(a.info.breedComposition);if(typeof a.info.compositionSource!=='string'||a.info.compositionSource.length>500||info.breedComposition.length&&!a.info.compositionSource.trim())throw Error('Enter the source of recorded breed percentages.');info.compositionSource=a.info.compositionSource.trim();}
     next.pedigreeInfo=JSON.stringify(info);
    }
    if(body.action==='edit'&&('sex' in a||'dob' in a||'birthYear' in a)){
@@ -96,9 +98,10 @@ export async function POST(req:Request){try{
    }}
    relationshipMatrix(results.map(p=>p.id===id?next:p));
   }else next.archivedAt=body.action==='archive'?now:null;
+  if(next.birthYear!==existing.birthYear){const number=await db.prepare('SELECT COALESCE(MAX(birthSequence),0)+1 AS value FROM animals WHERE birthYear IS ? AND id!=?').bind(next.birthYear,id).first<any>();next.birthSequence=number.value;}
   const result=await db.batch([
    db.prepare('INSERT INTO animal_history (operationId,animalId,action,reason,before,after,createdAt) SELECT ?,?,?,?,?,?,? FROM animals WHERE id=? AND version=? AND (?=-1 OR (SELECT SUM(version) FROM animals)=?)').bind(operationId,id,body.action,reason,JSON.stringify(existing),JSON.stringify(next),now,id,a.version,graphVersion,graphVersion),
-   db.prepare('UPDATE animals SET archivedAt=?,name=?,origin=?,breed=?,sire=?,dam=?,dob=?,birthYear=?,pedigreeInfo=?,sex=?,rightTag=?,leftTag=?,eid=?,status=?,version=version+1 WHERE id=? AND version=? AND (?=-1 OR (SELECT SUM(version) FROM animals)=?)').bind(next.archivedAt||null,next.name,next.origin,next.breed,next.sire,next.dam,next.dob,next.birthYear,next.pedigreeInfo||'{}',next.sex,next.rightTag,next.leftTag,next.eid,next.status,id,a.version,graphVersion,graphVersion)
+   db.prepare('UPDATE animals SET archivedAt=?,name=?,origin=?,breed=?,sire=?,dam=?,dob=?,birthYear=?,birthSequence=?,pedigreeInfo=?,sex=?,rightTag=?,leftTag=?,eid=?,status=?,version=version+1 WHERE id=? AND version=? AND (?=-1 OR (SELECT SUM(version) FROM animals)=?)').bind(next.archivedAt||null,next.name,next.origin,next.breed,next.sire,next.dam,next.dob,next.birthYear,next.birthSequence??null,next.pedigreeInfo||'{}',next.sex,next.rightTag,next.leftTag,next.eid,next.status,id,a.version,graphVersion,graphVersion)
   ]);
   if(result[1].meta.changes!==1)return json({error:'This animal changed in another view. Reload before trying again.'},409);
  }else if(body.action==='ancestor'){

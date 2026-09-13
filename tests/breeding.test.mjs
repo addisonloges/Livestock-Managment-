@@ -5,3 +5,10 @@ test('groups allow cross-year exposures but reject duplicate members and invalid
 test('high COI blocks planned mating but actual historical exposure remains recordable',()=>{const daughter={...ewe,sire:'r'};assert.throws(()=>validateGroup(group,[ram,daughter]),/20%/);assert.doesNotThrow(()=>validateGroup({...group,state:'Exposed',start:'2026-09-03'},[ram,daughter]));});
 
 test('planned groups can have no date; actual exposure keeps a different planned date',()=>{assert.doesNotThrow(()=>validateGroup({...group,plannedStart:'',start:'',end:''},[ram,ewe]));assert.throws(()=>validateGroup({...group,state:'Exposed'},[ram,ewe]),/actual exposure/);assert.doesNotThrow(()=>validateGroup({...group,state:'Exposed',start:'2026-09-03'},[ram,ewe]));});
+
+test('individual ewe periods stay within the group and may not overlap',()=>{
+ const g={...group,state:'Exposed',start:'2026-09-01',exposures:[{eweId:'e',start:'2026-09-02',end:'2026-09-04'},{eweId:'e',start:'2026-09-05',end:''}]};
+ assert.doesNotThrow(()=>validateGroup(g,[ram,ewe]));
+ assert.throws(()=>validateGroup({...g,exposures:[...g.exposures,{eweId:'e',start:'2026-09-03',end:'2026-09-04'}]},[ram,ewe]),/overlap/);
+ assert.throws(()=>validateGroup({...g,exposures:[{eweId:'e',start:'2026-08-31',end:''}]},[ram,ewe]),/within/);
+});

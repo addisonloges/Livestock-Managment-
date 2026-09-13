@@ -1,5 +1,9 @@
 # Clarkson's Flock — requirements review and build plan
 
+## September 13 project-wide source reconciliation
+
+Read `Clarksons-project-reconciliation.md` before continuing implementation. It records recovered decisions from “Please be this one- Clarkson’s breed” and supersedes older uncertainty below about ID sequence, breeding-year ownership, depreciation and partial breed projection. It also records the Ohio State spreadsheet / SDSU management preference and Iowa State references. Review findings are not completed features.
+
 Source: Livestock_Management_Dashboard_Agile_Discovery_Company_Review-1.pdf, nine pages, supplied September 11, 2026. This is the source for this implementation. The later formula appendix mentioned in the project conversation is absent from this file. No prior assistant claim about those formulas is treated as verified source material.
 
 ## Corrected phase order — controlling update

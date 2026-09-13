@@ -17,7 +17,8 @@ console.log('PASS: duplicate tags, exact EID, extra tags, conflicting identifier
 const retired=[{animalId:'one',action:'tag',after:JSON.stringify({tagChange:{mode:'retire',field:'rightTag',previous:'OLD04',retiredEid:'OLD123'}})}];
 assert.equal(matchWeightAnimal({eid:'OLD123'},animals,retired)[0].id,'one');
 assert.equal(matchWeightAnimal({tag:'OLD04'},animals,retired)[0].id,'one');
-const oldRows=weightImportRows([['EID','Weight'],['OLD123','110']],['eid','weight'],animals,'lb',retired);assert.equal(oldRows[0].animalId,'');assert.match(oldRows[0].matchNote,/Retired/);
+const oldRows=weightImportRows([['EID','Weight'],['OLD123','110']],['eid','weight'],animals,'lb',retired);assert.equal(oldRows[0].animalId,'');assert.match(oldRows[0].matchNote,/Previous identifier/);
 const reused=[{...animals[1],eid:'OLD123'},animals[0]];assert.equal(matchWeightAnimal({eid:'OLD123'},reused,retired).length,2);
 const typo=[{animalId:'one',action:'tag',after:JSON.stringify({tagChange:{mode:'correct',field:'eid',previous:'TYPO'}})}];assert.equal(matchWeightAnimal({eid:'TYPO'},animals,typo).length,0);
 console.log('PASS: retired EID/tag suggestions require confirmation, reused identifiers remain ambiguous, typo corrections are not retirements');
+
