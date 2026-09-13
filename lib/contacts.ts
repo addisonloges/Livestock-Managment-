@@ -1,0 +1,3 @@
+import {isUuid} from './lambing.ts';
+export type Contact={id:string;version:number;name:string;email:string;phone:string;address:string;role:string;notes:string;archived:boolean};
+export function validateContact(c:Contact){if(!c||!isUuid(c.id)||!Number.isInteger(c.version)||c.version<0||typeof c.archived!=='boolean'||!['Supplier','Veterinarian','Buyer','Breeder','Co-owner','Other'].includes(c.role))throw Error('Enter valid contact details.');for(const k of ['name','email','phone','address','notes'] as const)if(typeof c[k]!=='string'||c[k].length>(k==='notes'?2000:k==='address'?500:200))throw Error('Contact details exceed the supported length.');if(!c.name.trim())throw Error('Enter a contact name.');}

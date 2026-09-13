@@ -19,12 +19,13 @@ export async function correctLitter(db:any,existing:any,next:Litter,operationId:
  const history=(await db.prepare('SELECT * FROM animal_history').all()).results;
  const weights=(await db.prepare('SELECT * FROM weights').all()).results;
  const records=(await db.prepare('SELECT id,data FROM farm_records').all()).results.map((r:any)=>({...JSON.parse(r.data),id:r.id}));
+ const alreadyMatches=children.length===before.lambs.filter(x=>x.outcome==='Alive').length&&children.every(a=>JSON.parse(a.pedigreeInfo||'{}').litterId===before.id&&a.dob===next.date&&(a.dam||'')===next.damId&&(a.sire||'')===next.sireId)&&weights.filter((w:any)=>children.some(a=>a.id===w.animalId)&&w.session==='Birth · '+before.id).every((w:any)=>w.date===next.date);
  const block=litterArchiveBlock(before,children,all,history,groups,records,weights);
- if(block)throw Error(block.replaceAll('voiding','correcting'));
+ if(block&&!alreadyMatches)throw Error(block.replaceAll('voiding','correcting'));
  const now=new Date().toISOString();
  const corrected={...before,date:next.date,damId:next.damId,sireId:next.sireId,groupId:next.groupId,notes:next.notes,assistance:next.assistance,version:before.version+1};
  const statements=[db.prepare("INSERT INTO animals(id,species,sex,origin,firstYear,createdAt) SELECT NULL,'Sheep','Unknown','Purchased',1900,'' WHERE ? != (SELECT "+stampSql+')').bind(stamp.value)];
- for(const animal of children){
+ for(const animal of alreadyMatches?[]:children){
   const meta={...JSON.parse(animal.pedigreeInfo||'{}'),breedComposition:info.composition,compositionSource:info.composition.length?'Calculated from parents at birth':''};
   const after={...animal,dob:next.date,sire:next.sireId||null,dam:next.damId||null,breed:info.composition.length===1?info.composition[0].breed:info.composition.length?'Composite':'',pedigreeInfo:JSON.stringify(meta),version:animal.version+1,litterArchiveId:before.id};
   statements.push(db.prepare('UPDATE animals SET dob=?,sire=?,dam=?,breed=?,pedigreeInfo=?,version=version+1 WHERE id=? AND version=?').bind(after.dob,after.sire,after.dam,after.breed,after.pedigreeInfo,animal.id,animal.version));

@@ -1,0 +1,6 @@
+"use client";
+import {useEffect,useState} from 'react';import type {Contact} from '@/lib/contacts';
+export default function CounterpartyField({value,onChange}:{value?:{id:string;name:string};onChange:(v:{id:string;name:string}|undefined)=>void}){
+ const [contacts,setContacts]=useState<Contact[]>([]),[error,setError]=useState('');useEffect(()=>{fetch('/api/flock/contacts').then(async r=>{const d=await r.json() as any;if(!r.ok)throw Error(d.error);setContacts(d.contacts)}).catch(e=>setError(e.message))},[]);
+ return <label>Payee / payer contact (optional)<select className="border rounded p-2 w-full" value={value?.id||''} onChange={e=>{const c=contacts.find(c=>c.id===e.target.value);onChange(c?{id:c.id,name:c.name}:undefined)}}><option value="">Not entered</option>{value&&!contacts.some(c=>c.id===value.id)&&<option value={value.id}>{value.name}</option>}{contacts.filter(c=>!c.archived||c.id===value?.id).map(c=><option key={c.id} value={c.id}>{c.name}{c.archived?' (archived)':''}</option>)}</select>{value&&<small>Recorded name: {value.name}</small>}<small>Add contacts in Settings. The saved transaction keeps the contact name as recorded.</small>{error&&<span role="alert">{error}</span>}</label>
+}

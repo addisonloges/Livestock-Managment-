@@ -12,6 +12,8 @@ The user corrected the workflow: animal identity → breeding → lambing/offspr
 
 ## Current cumulative checkpoint
 
+The current implementation coverage is recorded in `Current-capability-coverage.md`. The first-build table below is historical and must not be used to decide what remains to build.
+
 See `Program-progress-and-testing.md` and the Build Plan review guide for current capability status and the combined user checklist. Historical first-build statements below are retained as discovery history, not current feature availability. The user has requested continued development without waiting for phone-based testing.
 
 ## Review conclusion
@@ -70,7 +72,7 @@ Data preservation, exports and verification apply throughout, not only in Phase 
 
 These are implementation dependency groups, not promised sprint durations. Full-system completion requires all acceptance criteria and actual XR5000 samples, historic data and calculation references.
 
-## Traceability of all 37 capability areas
+## Historical first-build traceability of all 37 capability areas
 
 | PDF section | First-build coverage / remaining scope |
 |---|---|

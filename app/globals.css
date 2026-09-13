@@ -154,3 +154,7 @@ body{background:var(--background);color:var(--foreground);font-family:Arial,sans
 .section-navigation-control button{font-size:1rem;font-weight:650;background:transparent;min-height:42px;box-shadow:none}
 .section-navigation-context{margin-left:auto;color:var(--muted-foreground);font-size:.875rem}
 @media(max-width:640px){.section-navigation{padding:.8rem;gap:.7rem}.section-navigation-control{flex:1;min-width:0}.section-navigation-context{display:none}}
+
+/* The farm workspace uses its light palette consistently across device themes. */
+:root{color-scheme:light;--card:#ffffff;--card-foreground:#23372e;--popover:#ffffff;--popover-foreground:#23372e}
+@media(max-width:650px){.mast{gap:12px}.mast .brand{font-size:20px}.mast>button{font-size:12px;flex-shrink:0}}

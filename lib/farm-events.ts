@@ -1,21 +1,25 @@
 import {type GrowthBudget,validateGrowthBudget} from './growth-budget.ts';
 import {validDate,type Animal} from './livestock.ts';
 import {isUuid} from './lambing.ts';
-export const eventKinds=['note','rearing','weaning','condition','expense','income','valuation','reminder','treatment','stock','management','ration','lab','evaluation','growthplan'] as const;
-export type TreatmentDose={date:string;amount:number;unit:string;state:'Scheduled'|'Given'|'Skipped';overrides?:Record<string,number>};
-export type FarmEvent={id:string;version:number;kind:typeof eventKinds[number];species:string;date:string;animalIds:string[];title:string;notes:string;amountCents:number|null;category:string;dueDate:string;voided?:boolean;attachments?:{id:string;name:string;type:string;size:number;uploadedAt:string;removedAt?:string}[];sale?:{buyer:string;disposition:'Sold'|'Transferred';exitReason:string;cullReason:string};saleStatusIds?:string[];allocations?:Record<string,number>;lab?:{laboratory:string;results:Record<string,{value:string;unit:string;reference:string}>};growth?:GrowthBudget;ration?:{stage?:string;source?:string;feedingLb:number|null;ingredients:{name:string;pounds:number;pricePerTon:number|null}[]};management?:{groupId:string;endDate:string};weaningWeights?:Record<string,{value:number;unit:'lb'|'kg'}>;weightIds?:string[];stock?:{quantity:number;unit:string;expires:string;lowAt:number|null;minimumIntervalDays?:number|null;maximumDose?:number|null;warningReference?:string};protocol?:{lotId?:string;product:string;route:string;reference:string;withdrawalEnd:string;doses:TreatmentDose[]}};
+export const eventKinds=['note','rearing','weaning','condition','expense','income','valuation','reminder','treatment','stock','management','ration','lab','evaluation','growthplan','selection'] as const;
+export type DoseState='Scheduled'|'Given'|'Skipped';
+export type TreatmentDose={date:string;amount:number;unit:string;state:DoseState;states?:Record<string,DoseState>;overrides?:Record<string,number>};
+export type FarmEvent={id:string;version:number;kind:typeof eventKinds[number];species:string;date:string;animalIds:string[];title:string;notes:string;amountCents:number|null;category:string;dueDate:string;voided?:boolean;attachments?:{id:string;name:string;type:string;size:number;uploadedAt:string;removedAt?:string}[];counterparty?:{id:string;name:string};sale?:{buyer:string;disposition:'Sold'|'Transferred';exitReason:string;cullReason:string};saleStatusIds?:string[];allocations?:Record<string,number>;lab?:{laboratory:string;results:Record<string,{value:string;unit:string;reference:string}>};rearing?:{fosterDamId:string;numberReared:number|null};growth?:GrowthBudget;ration?:{stage?:string;source?:string;feedingLb:number|null;ingredients:{name:string;pounds:number;pricePerTon:number|null}[]};management?:{groupId:string;endDate:string};weaningWeights?:Record<string,{value:number;unit:'lb'|'kg'}>;weightIds?:string[];stock?:{quantity:number;unit:string;expires:string;lowAt:number|null;minimumIntervalDays?:number|null;maximumDose?:number|null;warningReference?:string};protocol?:{lotId?:string;product:string;route:string;reference:string;withdrawalEnd:string;doses:TreatmentDose[]}};
 export function validateEvent(e:FarmEvent,animals:Animal[]){
  if(!isUuid(e.id)||!eventKinds.includes(e.kind)||!['Sheep','Goats'].includes(e.species)||!validDate(e.date))throw Error('Choose a valid event type, species and date.');
  if(!['reminder','growthplan','ration'].includes(e.kind)&&e.date>new Date().toISOString().slice(0,10))throw Error('Actual events cannot be in the future.');
  if(typeof e.title!=='string'||!e.title.trim()||e.title.length>200||typeof e.notes!=='string'||e.notes.length>4000||typeof e.category!=='string'||e.category.length>100)throw Error('Enter a title up to 200 characters and notes up to 4000.');
  if(!Array.isArray(e.animalIds)||e.animalIds.length>200||new Set(e.animalIds).size!==e.animalIds.length)throw Error('Select distinct animals (up to 200).');
- if(['rearing','weaning','condition','valuation','management'].includes(e.kind)&&!e.animalIds.length)throw Error('Select at least one animal.');
+ if(['rearing','weaning','condition','valuation','management','selection'].includes(e.kind)&&!e.animalIds.length)throw Error('Select at least one animal.');
  for(const id of e.animalIds){const a=animals.find(a=>a.id===id);if(!a||a.species!==e.species||a.pedigreeOnly||a.firstYear>Number(e.date.slice(0,4))||a.dob&&a.dob>e.date)throw Error('Event animals must belong to this species and be recorded by the event date.');}
  if(['expense','income','valuation'].includes(e.kind)){if(!Number.isSafeInteger(e.amountCents)||e.amountCents!<0||e.amountCents!>1e10)throw Error('Enter a nonnegative amount with at most two decimals.');}else if(e.amountCents!==null)throw Error('Amounts belong only to income, expenses or valuations.');
  if(e.allocations){if(!['expense','income'].includes(e.kind)||typeof e.allocations!=='object'||Array.isArray(e.allocations)||Object.keys(e.allocations).length!==e.animalIds.length||Object.entries(e.allocations).some(([id,n])=>!e.animalIds.includes(id)||!Number.isSafeInteger(n)||n<0)||Object.values(e.allocations).reduce((a,b)=>a+b,0)!==e.amountCents)throw Error('Individual allocations must cover the selected animals and equal the total exactly.');}
+ if(e.counterparty&&(!['expense','income'].includes(e.kind)||!isUuid(e.counterparty.id)||typeof e.counterparty.name!=='string'||!e.counterparty.name.trim()||e.counterparty.name.length>200))throw Error('Choose a valid payee or payer contact.');
  if(e.sale&&(e.kind!=='income'||!e.animalIds.length||typeof e.sale.buyer!=='string'||e.sale.buyer.length>200||!['Sold','Transferred'].includes(e.sale.disposition)||typeof e.sale.exitReason!=='string'||e.sale.exitReason.length>200||typeof e.sale.cullReason!=='string'||e.sale.cullReason.length>200||e.sale.exitReason==='Cull'&&!e.sale.cullReason.trim()))throw Error('Enter valid sale details and a cull reason when applicable.');
  if(e.kind==='condition'&&(!Number.isFinite(Number(e.category))||Number(e.category)<1||Number(e.category)>5))throw Error('Body condition score must be from 1 to 5.');
+ if(e.kind==='selection'&&!['Retain','Market / sell','Undecided'].includes(e.category))throw Error('Choose a retention or marketing decision.');
  if(e.kind==='rearing'&&!['Dam-raised','Bottle-raised','Fostered','Other'].includes(e.category))throw Error('Choose a rearing method.');
+ if(e.rearing){const r=e.rearing;if(e.kind!=='rearing'||typeof r.fosterDamId!=='string'||r.numberReared!==null&&(!Number.isInteger(r.numberReared)||r.numberReared<1))throw Error('Enter a valid optional number reared.');if(r.fosterDamId){const dam=animals.find(a=>a.id===r.fosterDamId);if(!dam||dam.sex!=='Female'||dam.species!==e.species||dam.pedigreeOnly||dam.firstYear>Number(e.date.slice(0,4))||e.animalIds.includes(dam.id)||dam.dob&&dam.dob>=e.date)throw Error('Choose a recorded female of this species as foster dam.');if(e.category!=='Fostered')throw Error('A foster dam belongs to a Fostered rearing event.');}}
  if(e.dueDate&&(!validDate(e.dueDate)||e.dueDate<e.date))throw Error('Follow-up date must be on or after the event date.');
  if(['lab','evaluation'].includes(e.kind)){const l=e.lab;if(!e.animalIds.length||!l||typeof l.laboratory!=='string'||l.laboratory.length>200||!l.results||Array.isArray(l.results)||typeof l.results!=='object')throw Error('Choose animals and enter result details.');if(e.kind==='evaluation'&&!l.laboratory.trim())throw Error('Record the evaluation provider/source.');for(const [id,r] of Object.entries(l.results))if(!e.animalIds.includes(id)||!r||typeof r.value!=='string'||r.value.length>200||typeof r.unit!=='string'||r.unit.length>50||typeof r.reference!=='string'||r.reference.length>500)throw Error('Lab results must match selected animals and contain valid text.');}
  if(e.kind==='growthplan')validateGrowthBudget(e.growth!);
@@ -28,6 +32,7 @@ export function validateEvent(e:FarmEvent,animals:Animal[]){
   if(p.withdrawalEnd&&(!validDate(p.withdrawalEnd)||p.withdrawalEnd<e.date))throw Error('Withdrawal end must be on or after treatment start.');
   if(!Array.isArray(p.doses)||!p.doses.length||p.doses.length>100)throw Error('Enter 1–100 scheduled doses.');
   for(const d of p.doses)if(!validDate(d.date)||d.date<e.date||!Number.isFinite(d.amount)||d.amount<=0||d.amount>100000||typeof d.unit!=='string'||!d.unit.trim()||d.unit.length>30||!['Scheduled','Given','Skipped'].includes(d.state)||d.state==='Given'&&d.date>new Date().toISOString().slice(0,10))throw Error('Each dose needs a valid date, positive amount, unit and state. Future doses cannot be marked Given.');
+  for(const d of p.doses)if(d.states){if(typeof d.states!=='object'||Array.isArray(d.states)||Object.entries(d.states).some(([id,state])=>!e.animalIds.includes(id)||!['Scheduled','Given','Skipped'].includes(state)||state==='Given'&&d.date>new Date().toISOString().slice(0,10)))throw Error('Individual dose states must belong to selected animals; future doses cannot be given.');}
   for(const d of p.doses)if(d.overrides){if(typeof d.overrides!=='object'||Array.isArray(d.overrides))throw Error('Invalid individual doses.');for(const [id,amount] of Object.entries(d.overrides))if(!e.animalIds.includes(id)||!Number.isFinite(amount)||amount<=0||amount>100000)throw Error('Individual doses must be positive amounts for selected animals.');}
  }
 }
@@ -45,20 +50,24 @@ export function cashSummary(events:FarmEvent[],year='all'){
 export function lotBalance(lot:FarmEvent,events:FarmEvent[],through='9999-12-31'){
  if(lot.kind!=='stock'||!lot.stock||lot.voided)return null;
  let used=0;
- for(const e of events.filter(e=>!e.voided&&e.kind==='treatment'&&e.protocol?.lotId===lot.id))for(const dose of e.protocol!.doses)if(dose.state==='Given'&&dose.date<=through&&dose.unit.trim().toLowerCase()===lot.stock.unit.trim().toLowerCase())used+=e.animalIds.reduce((n,id)=>n+(dose.overrides?.[id]??dose.amount),0);
+ for(const e of events.filter(e=>!e.voided&&e.kind==='treatment'&&e.protocol?.lotId===lot.id))for(const dose of e.protocol!.doses)if(dose.date<=through&&dose.unit.trim().toLowerCase()===lot.stock.unit.trim().toLowerCase())used+=e.animalIds.reduce((n,id)=>n+(doseState(dose,id)==='Given'?(dose.overrides?.[id]??dose.amount):0),0);
  return {used,remaining:lot.stock.quantity-used};
 }
 
+export function doseState(dose:TreatmentDose,animalId:string):DoseState{return dose.states?.[animalId]||dose.state;}
 export function treatmentWarnings(event:FarmEvent,events:FarmEvent[]){
  if(!event.protocol)return [];
  const lot=events.find(e=>e.id===event.protocol!.lotId&&!e.voided),warnings:string[]=[];
- const doses=event.protocol.doses.filter(d=>d.state!=='Skipped');
+ const doses=event.protocol.doses.filter(d=>event.animalIds.some(id=>doseState(d,id)!=='Skipped'));
+ if(event.protocol.withdrawalEnd&&doses.some(d=>d.date>event.protocol!.withdrawalEnd))warnings.push('The recorded withdrawal end is before a dose date. Review the dates and instruction source.');
  if(lot?.stock?.expires&&doses.some(d=>d.date>lot.stock!.expires))warnings.push('A dose falls after this lot’s recorded expiration date.');
- if(lot?.stock?.maximumDose&&doses.some(d=>event.animalIds.some(id=>(d.overrides?.[id]??d.amount)>lot.stock!.maximumDose!)))warnings.push('An amount exceeds this lot’s recorded review limit. Check the instruction source.');
- const other=events.filter(e=>e.id!==event.id&&!e.voided&&e.protocol?.product.trim().toLowerCase()===event.protocol!.product.trim().toLowerCase()&&e.animalIds.some(id=>event.animalIds.includes(id))).flatMap(e=>e.protocol!.doses.filter(d=>d.state!=='Skipped'));
- const interval=lot?.stock?.minimumIntervalDays;
- if(interval&&doses.some(d=>other.some(o=>Math.abs(Date.parse(d.date)-Date.parse(o.date))/86400000<interval)))warnings.push('Another treatment falls within this product’s recorded minimum review interval.');
- if(doses.some(d=>other.some(o=>o.date===d.date))||new Set(doses.map(d=>d.date)).size<doses.length)warnings.push('Multiple doses share a date. Review possible duplication.');
+ if(lot?.stock?.maximumDose&&doses.some(d=>event.animalIds.some(id=>doseState(d,id)!=='Skipped'&&(d.overrides?.[id]??d.amount)>lot.stock!.maximumDose!)))warnings.push('An amount exceeds this lot’s recorded review limit. Check the instruction source.');
+ let tooClose=false,duplicate=false;const interval=lot?.stock?.minimumIntervalDays;
+ for(const id of event.animalIds){const own=doses.filter(d=>doseState(d,id)!=='Skipped');const other=events.filter(e=>e.id!==event.id&&!e.voided&&e.protocol?.product.trim().toLowerCase()===event.protocol!.product.trim().toLowerCase()&&e.animalIds.includes(id)).flatMap(e=>e.protocol!.doses.filter(d=>doseState(d,id)!=='Skipped'));
+  for(let i=0;i<own.length;i++)for(const o of [...own.slice(i+1),...other]){const days=Math.abs(Date.parse(own[i].date)-Date.parse(o.date))/86400000;if(days===0)duplicate=true;if(interval&&days<interval)tooClose=true;}
+ }
+ if(tooClose)warnings.push('Treatment dates fall within this product’s recorded minimum review interval. Review the protocol and instruction source.');
+ if(duplicate)warnings.push('Multiple doses share a date for an animal. Review possible duplication.');
  return warnings;
 }
 

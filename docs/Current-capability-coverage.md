@@ -1,0 +1,51 @@
+# Current capability coverage — September 13, 2026
+
+Working implementation; not a declaration of whole-project completion. Live remains v36. Local checkpoint e7d2daf plus subsequent changes has not been published. Latest full build passed; 66 automated tests and local/browser integration checks passed. See Connected-build-checkpoint.md for subsequent updates.
+
+| Area | Implemented working capability | Remaining work / boundary |
+|---|---|---|
+| 1 Overall concept | Species and year workspaces; informational home; section dropdown | Independent saved species/year preferences; architecture remains one partitioned database |
+| 2 Identity | Permanent UUID, birth-year number, former identifiers, multiple tags per ear, EID links, retirement/correction/swap | Final integrated review and import edge cases |
+| 3 Animal information | Optional sex/birth details, composition records and complete-parent inheritance | Broader batch-editor refinements deferred by user |
+| 4 Ownership/registry | Dated ownership, origin, registry details and dedicated paperwork | Reusable contact directory and transaction name snapshots now implemented; further profile contact linking remains |
+| 5 Status/year | Dated exits, unknown exit dates, correction, reactivation, archived records | Cross-module historical reconciliation remains under review |
+| 6 Lifetime profile | Photos/history, documents, tags, pedigree, events, finances, custom values | Timeline presentation refinement |
+| 7 Pedigree/genetics | Multiple generations, unowned ancestors, evaluation records/CSV/history/files | Provider-specific import formats and richer trait comparisons |
+| 8 Breeding | Saved groups, active candidates, planned/actual dates, individual exposure periods, pregnancy checks | Integrated end-to-end review and complex historical changes |
+| 9 COI | Pedigree matrix, thresholds, female relationships and ram comparison | Incomplete pedigree remains an explicit limitation |
+| 10 Cross-year breeding | Original breeding-year ownership; later calendar birth windows and litter links | Further date-boundary regression review |
+| 11 Flushing | Configurable project timing and calendar dates | Feeding protocol integration depends on unresolved feed design |
+| 12 Lambing/kidding | Explicit section, offspring-first entry, atomic profiles/weights, correction/reconciliation and void/restore | Cross-year corrections and complex dependent outcome changes |
+| 13 Birth outcomes | Stillborn in litter without live profile; living offspring use normal status history | More neonatal outcome reporting |
+| 14 Rearing/weaning | Dated foster/rearing details; biological parents preserved; shared weaning measurements | Contemporary-group use of rearing history |
+| 15 Management groups | Dated membership and reentry, overlap checks, cross-year display | Feed allocation integration remains open |
+| 16 Weights | Lamb-first sessions, adults, imports, corrections/voids, ADG; separate sourced adjusted calculator | Peer-group rankings and saved adjusted analyses |
+| 17 Parent performance | Live profiles versus litter outcomes, weaning, retained decisions, birth weights, cash contribution | Breeding-cohort check/outcome reporting implemented; normalized peer comparisons remain |
+| 18 Health | Individual/batch protocols, dose events/overrides, lab results, files and reminders | Further health workflow review; no guessed medical defaults |
+| 19 Health inventory | Lots, approximate balances, expiration and user-sourced dose/repeat warnings | Central dashboard warning placement remains open |
+| 20 Feed/rations | Dated mix versions, stage/source, as-fed percentages and costs, unknown-price handling, growth budgets | Allocation choice and nutritional integration remain open; dry-matter modeling excluded |
+| 21 Finances | Income/expenses, equal or explicit animal allocations, annual/lifetime amounts, monthly cash | Purchase basis and broader statements/reconciliation |
+| 22 Contribution | Actual cash separate from retained estimates and parent contributions | More performance metrics; never sum both parents into farm profit |
+| 23 Sales | Individual/lot payment with atomic status exits and buyer/cull details | Payment/exit dates can be corrected separately; advanced lot reconciliation remains |
+| 24 Sessions | Weight sessions and batch events with review/history/void/restore | Unified general session management across every module |
+| 25 EID imports | Existing weight import matching, retired identifiers and ambiguous-match review | Representative device exports and phone/chute testing |
+| 26 Imports | Animal CSV/Excel/PDF workflow and templates; pedigree/evaluation imports | Wider document/provider layouts and full history imports |
+| 27 Search | Animal current/former identities and module filters | Cross-record search now implemented; richer direct record navigation remains |
+| 28 Reports | Animal CSV, monthly chart/table, parent comparison, saved filters, print | More export formats and consistent filters across every report/chart |
+| 29 Dashboard | Farm totals and upcoming work | Customizable cards; management flags remain open |
+| 30 Calendar | Breeding/project dates, births, reminders, protocols and follow-ups | Direct calendar editing and further views |
+| 31 Phone | Responsive views; mobile browser checks; offline shell | Install manifest/icons implemented and browser-validated; notifications and chute workflow refinements remain |
+| 32 Offline | Cached loaded data, durable pending queue, manual selected sync and conflict retention | Richer conflict merge/review; files require connection |
+| 33 Recovery | Full media/checksummed exports, retained manual vault, missing-record preview/restore and safety copies | Media-only recovery now implemented; unattended 12-week/12-month retention schedule and full/scoped rollback remain |
+| 34 Portability | Git source and standard CSV/JSON/TAR exports | Host migration requires adapter/configuration work |
+| 35 Custom fields | Typed definitions, archived fields, profile values and history | More batch/import/report integration |
+| 36 Settings | Custom fields and project timing/targets | Remaining saved defaults and backup configuration |
+| 37 Exclusions | No depreciation, forced composition, strict medical inventory, dry-matter modeling, pasture mapping, native app, PIN or mandatory Bluetooth | Preserve these exclusions |
+
+## Decisions still pending
+
+- Feed cost allocation: quantities and dated membership with individual overrides, or group-level costs for now.
+- Pins: management flags with reason/category, or simple favorites.
+- Important inventory warnings: also on the dashboard, or Health only.
+
+Do not treat absent replies as approval. Keep working on independent requirements. Do not announce all phases complete based on navigation alone.

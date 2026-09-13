@@ -98,3 +98,28 @@ Do not implement full historical overwrite as a simple table replacement: it mus
 ## Latest connected additions
 
 Calendar now includes actual litter dates; Dashboard upcoming work excludes already-recorded cash/notes. Reports include a monthly income/expense chart backed by the same monthly totals table. Added optional sheep adjusted-weight review calculator with verified Virginia Tech equations, explicit factor/source and separate calculated output. Actual measured weights remain unchanged. Formula test passed; latest source typechecks. These last changes need the next full build/browser pass.
+
+
+Git checkpoint e7d2daf saves the connected implementation through the adjusted-weight calculator. It is committed locally, not pushed or deployed. Latest build before this following addition passed all 61 tests and mobile browser checks.
+
+Newer uncommitted addition: structured dated rearing fields for foster dam and number reared, without changing biological parentage. Validation rejects self-fostering and incorrect species/sex; source history displays foster details. Litter correction/void dependency checks now include later foster-dam references. Farm-event tests pass; this addition needs the next full build/API/browser check.
+
+
+Further uncommitted work: retention/marketing decision events are separate from status and cash; retained valuation reports now correctly treat the entered amount as per animal (matching the existing form contract). Parent reports distinguish live profiles, litter-born-alive/stillborn counts and retain decisions. Added tests for these distinctions. Litter correction now permits reconciling to already-matching profile/birth-weight details without rewriting downstream profiles; mismatches are surfaced in Lambing. Latest typecheck passes; next step is local integration and build validation for these changes.
+
+
+Latest uncommitted additions: install manifest/phone metadata and icons, install prompt when supported, breeding-cohort outcomes with cross-year births and explicit unresolved checks, reusable contact directory in Settings and payee/payer snapshots on expenses/income. Contact edits preserve prior transaction names. Full build and API tests are next for this batch. Current server session remains 67877 and serves the preceding build.
+
+
+Latest treatment/recovery additions (uncommitted): individual per-dose Given/Scheduled/Skipped overrides, inventory and calendar use effective per-animal states, next-day scheduling clears prior state overrides, and repeat-interval checks include doses within a protocol. Added contradictory withdrawal-end warning. Media-only recovery skips older database records and verifies/restores only referenced missing files. This batch typechecks; next build/API/browser checks are pending.
+
+
+Current server session 25665 serves the build through contacts/PWA metadata. That build, 65 automated tests, contacts API integration, and browser manifest/icon/contact navigation checks passed. Newer individual treatment states and media-only recovery need a new build.
+
+Next larger recovery work: full/scoped historical rollback cannot simply replace tables. A safe design needs a persistent identity-number reservation ledger (not rolled back), a write epoch to invalidate stale/offline writes across restore, transactional guards on every database write, preserved safety snapshots/media, and previewed scope/diff/dependency checks. This design is not implemented. Do not ship a naive DELETE/INSERT restore that reuses IDs or lets an old queued write silently apply to restored state. Scheduling also still requires an actual hosting scheduler, not an on-open approximation.
+
+
+Search records now searches animal current/historical details, events, litters, breeding groups/projects and contacts across species/years, with profile opening or navigation to the owning module/year. Ancestor-only/deleted records stay in their dedicated views. Added explicit partial-source errors and a bounded result list. Phone header and light-palette consistency adjusted for the added search control. This batch is newer than the running build.
+
+
+Latest validation: full build and all 66 automated tests pass. Local browser verified media-only recovery using an older archive while preserving a newer event edit, global cross-record search, and phone layout under a dark device preference. Screenshot work/mobile-record-search.png was inspected. Current local server session 50909 serves this build. Changes since e7d2daf are still uncommitted and all work is still unpublished.
