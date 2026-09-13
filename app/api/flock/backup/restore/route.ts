@@ -13,7 +13,7 @@ export async function POST(req:Request){try{
  const db=rawDb(),current=await db.batch(tables.map(t=>db.prepare('SELECT * FROM '+t)));
  const before=Object.fromEntries(tables.map((t,i)=>[t,current[i].results]));
  const stamp:any=await db.prepare('SELECT '+fingerprint+' AS stamp').first();
- const inserts:{table:string;row:Record<string,string|number|null>}[]=[],conflicts:string[]=[],counts:Record<string,number>={};
+ const inserts:{table:string;row:Record<string,string|number|null>}[]=[],conflicts:string[]=[],conflictDetails:any[]=[],counts:Record<string,number>={},currentOnly:Record<string,number>={};
  for(let i=0;i<tables.length;i++){
   const table=tables[i],rows=backup.tables[table];if(!Array.isArray(rows)||rows.length>100000)throw Error('Invalid or oversized table: '+table);
   const schema=await db.prepare('PRAGMA table_info('+table+')').all<any>(),columns=new Map(schema.results.map(c=>[c.name,c]));
@@ -22,10 +22,11 @@ export async function POST(req:Request){try{
    if(!row||typeof row!=='object'||Array.isArray(row)||typeof row[key]!=='string'||seen.has(row[key]))throw Error('Invalid or repeated record in '+table);seen.add(row[key]);
    for(const [column,value] of Object.entries(row)){const spec:any=columns.get(column);if(!spec||value!==null&&!['string','number'].includes(typeof value)||typeof value==='number'&&!Number.isFinite(value))throw Error('Invalid field in '+table);if(value!==null&&((spec.type==='TEXT'&&typeof value!=='string')||spec.type==='INTEGER'&&!Number.isInteger(value)||spec.type==='REAL'&&typeof value!=='number'))throw Error('Wrong field type in '+table);if(typeof value==='string'&&['data','before','after','pedigreeInfo'].includes(column))JSON.parse(value);if(spec.notnull&&value===null)throw Error('Missing required value in '+table);}
    for(const c of schema.results)if(c.notnull&&c.dflt_value===null&&row[c.name]===undefined)throw Error('Missing '+c.name+' in '+table);
-   const old:any=existing.get(row[key]);if(old){if([...columns.keys()].some(k=>JSON.stringify(old[k]??null)!==JSON.stringify(row[k]??null)))conflicts.push(table+': '+row[key]);}else{inserts.push({table,row});counts[table]++;}
+   const old:any=existing.get(row[key]);if(old){const changed=[...columns.keys()].filter(k=>JSON.stringify(old[k]??null)!==JSON.stringify(row[k]??null));if(changed.length){conflicts.push(table+': '+row[key]);if(conflictDetails.length<50){const text=(v:any)=>{const s=typeof v==='string'?v:JSON.stringify(v??null);return s.length>800?s.slice(0,800)+'…':s};let name=old.name||old.rightTag||old.leftTag||old.title||row[key];if(old.data){const value=JSON.parse(old.data);name=value.title||value.name||name}conflictDetails.push({table,id:row[key],label:name,fields:changed.map(name=>({name,current:text(old[name]),backup:text(row[name])}))});}}}else{inserts.push({table,row});counts[table]++;}
   }
+  currentOnly[table]=[...existing.keys()].filter(id=>!seen.has(id)).length;
  }
- if(b.action==='preview')return json({counts,conflicts:conflicts.slice(0,50),conflictCount:conflicts.length,stamp:stamp.stamp,missing:inserts.length});
+ if(b.action==='preview')return json({counts,currentOnly,conflictDetails,conflicts:conflicts.slice(0,50),conflictCount:conflicts.length,stamp:stamp.stamp,missing:inserts.length});
  if(conflicts.length)return json({error:'Existing records differ from this backup. No records were replaced. Review those conflicts before restoring.'},409);
  if(b.stamp!==stamp.stamp)return json({error:'Records changed after preview. Preview again.'},409);
  if(!inserts.length)return json({saved:true,restored:0});

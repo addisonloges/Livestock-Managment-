@@ -1,4 +1,9 @@
-import {type FarmEvent} from './farm-events.ts';
+import {type FarmEvent,eventAllocation} from './farm-events.ts';
+export const animalPurchaseCategory='Animal purchase';
+export function purchaseBasis(events:FarmEvent[],animalId:string,through:string){
+ const rows=events.filter(e=>!e.voided&&e.kind==='expense'&&e.category===animalPurchaseCategory&&e.date<=through&&e.animalIds.includes(animalId));
+ return {recorded:rows.length>0,cents:rows.reduce((sum,e)=>sum+(eventAllocation(e).find(a=>a.id===animalId)?.cents||0),0),records:rows.map(e=>e.id)};
+}
 export function retainedEstimate(events:FarmEvent[],animalId:string,through:string){
  const rows=events.filter(e=>e.kind==='valuation'&&!e.voided&&e.date<=through&&e.animalIds.includes(animalId)).sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id));
  if(!rows.length)return null;
@@ -7,9 +12,9 @@ export function retainedEstimate(events:FarmEvent[],animalId:string,through:stri
  if(rows.some(e=>e.id!==latest.id&&e.date===latest.date))return {cents:null,date:latest.date,conflict:true};
  return {cents:latest.amountCents,date:latest.date,conflict:false};
 }
-export function monthlyCash(events:FarmEvent[],year:string){
+export function monthlyCash(events:FarmEvent[],year:string,animalIds?:Set<string>){
  const totals=new Map<string,{month:string;income:number;expenses:number}>();
- for(const e of events){if(e.voided||!['income','expense'].includes(e.kind)||year!=='all'&&!e.date.startsWith(year))continue;const month=e.date.slice(0,7),row=totals.get(month)||{month,income:0,expenses:0};if(e.kind==='income')row.income+=e.amountCents||0;else row.expenses+=e.amountCents||0;totals.set(month,row);}
+ for(const e of events){if(e.voided||!['income','expense'].includes(e.kind)||year!=='all'&&!e.date.startsWith(year))continue;const assignments=eventAllocation(e);if(animalIds&&!assignments.some(a=>animalIds.has(a.id)))continue;const cents=animalIds?assignments.filter(a=>animalIds.has(a.id)).reduce((sum,a)=>sum+a.cents,0):e.amountCents||0;const month=e.date.slice(0,7),row=totals.get(month)||{month,income:0,expenses:0};if(e.kind==='income')row.income+=cents;else row.expenses+=cents;totals.set(month,row);}
  return [...totals.values()].sort((a,b)=>a.month.localeCompare(b.month)).map(r=>({...r,net:r.income-r.expenses}));
 }
 

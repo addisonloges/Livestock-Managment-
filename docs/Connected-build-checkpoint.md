@@ -123,3 +123,19 @@ Search records now searches animal current/historical details, events, litters, 
 
 
 Latest validation: full build and all 66 automated tests pass. Local browser verified media-only recovery using an older archive while preserving a newer event edit, global cross-record search, and phone layout under a dark device preference. Screenshot work/mobile-record-search.png was inspected. Current local server session 50909 serves this build. Changes since e7d2daf are still uncommitted and all work is still unpublished.
+
+
+## Calendar, saved preferences and reporting checkpoint
+
+Added month/agenda calendar with event-type filtering and links to source records; cross-year entries open the original record year. Local browser checks passed, including Lambing navigation. Recovery preview now displays current/backup field differences and counts newer current-only records that will be preserved; read-only API verification passed.
+
+Species and per-species years are remembered in this browser. Saved report filters support update, archive and restore; browser create/update/archive/restore checks passed. The stale phase-one-only in-app testing guide is replaced by a seven-phase checklist with persistent browser checkmarks and explicit remaining items.
+
+Recorded Animal purchase expenses feed lifetime purchase basis using existing allocations, without adding another expense or depreciation. Reports offer whole-species cash or only amounts assigned to filtered animals; general costs stay outside the latter. Tests cover rounding, general-cost exclusion and unknown versus zero purchase cost. Adjusted growth reviews save source/input/version snapshots as dated animal notes. Local browser verified duplicate retry, unchanged actual weights and purchase/filtered cash rendering. Latest full suite at this point passed 69 tests.
+
+Newer additions needing next build/browser pass: peer growth comparison with birth/sex/breed/date/age filters, full-interval management membership, tied ranks and CSV; dashboard card selection/order saved by species/year in this browser. Peer tests passed and typecheck passed. Local server session 93565 serves the preceding build. No new live deployment or GitHub push. GitHub export approval remains pending following two automatic approval-review rejections; do not retry without the user's answer.
+
+
+Latest validated checkpoint: 71 automated tests, full build and typecheck pass. Phone browser checks passed dashboard card persistence, peer comparison filters and CSV. Offline browser checked current/pending field comparison, selected note-field merging, preserved previous device copy, manual-only synchronization and protection of a newer server title. Five report CSV downloads passed. Cross-year litter correction now updates eligible birth-year numbers, first recorded years, profiles and birth weights atomically; permanent IDs and prior identifiers remain in history. Local integration covered two offspring, repeated corrections, stale versions, dependent-history rejection and already-matching reconciliation.
+
+Current server session 70243 serves this build. All local-only QA records remain separate from the live database. No deployment or GitHub push has occurred. Remaining recovery work includes unattended scheduling and full/scoped historical rollback with a write epoch and permanent identifier reservations; do not implement naive table replacement. Pending design choices remain feed allocation, management flags and dashboard inventory warnings. GitHub export approval is still pending.
