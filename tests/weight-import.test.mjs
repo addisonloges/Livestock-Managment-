@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {matchWeightAnimal,weightImportRows,weightTemplate,matchWeightHeader} from '../lib/weight-import.ts';
+import {parseCsv} from '../lib/animal-import.ts';
+const animals=[{id:'one',seq:1,birthYear:null,name:'Ewe A',rightTag:'04',leftTag:'36',eid:'000123',pedigreeInfo:'{}'},{id:'two',seq:2,birthYear:null,name:'Ewe B',rightTag:'04',leftTag:'',eid:'000124',pedigreeInfo:JSON.stringify({additionalTags:[{number:'009'}]})}];
+assert.equal(matchWeightAnimal({tag:'04'},animals).length,2);
+assert.equal(matchWeightAnimal({tag:'009'},animals)[0].id,'two');
+assert.equal(matchWeightAnimal({eid:'000123'},animals)[0].id,'one');
+assert.equal(matchWeightAnimal({animalId:'one',rightTag:'99'},animals).length,0);
+assert.equal(matchWeightAnimal({animalId:'?-001'},animals)[0].id,'one');
+const grid=[['EID','Weight','Units','Date'],['000123','100','lbs','4/9/2026'],['000124','','kg','4/9/2026']];
+const result=weightImportRows(grid,grid[0].map(matchWeightHeader),animals,'lb');assert.equal(result.length,1);assert.equal(result[0].animalId,'one');assert.equal(result[0].date,'2026-04-09');assert.equal(result[0].unit,'lb');
+assert.throws(()=>weightImportRows(grid,['eid','weight','weight','date'],animals,'lb'));
+const template=parseCsv(weightTemplate(animals));assert.equal(template.length,3);assert.equal(template[1][4],'000123');assert.equal(template[1][5],'');
+const unsafe=parseCsv(weightTemplate([{...animals[0],name:'=1+1'}]));assert.equal(unsafe[1][1],"'=1+1");
+console.log('PASS: duplicate tags, exact EID, extra tags, conflicting identifiers, optional blank weights, date/unit normalization, template safety');

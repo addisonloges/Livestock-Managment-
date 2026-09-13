@@ -90,3 +90,8 @@ Added batch entry for 1–100 animals with a session name/date, searchable anima
 Validation: local API checks cover invalid-row rejection without partial save, repeated submissions without duplication, mixed units, duplicate animal/date protection, whole-session void/restore, stale-version rejection, and individual corrections retaining session membership. No test records were added to production.
 
 User test as one package: enter a few real measurements with one blank; review and correct before saving; reopen after refresh; correct one measurement and review history; void and restore the session, checking growth/counts; attempt a duplicate date; confirm All Years is read-only. Session drafts are not saved across refresh/navigation; save before leaving. Device/scale import, offline drafts, adjusted milestone formulas and cross-year correction are still separate future work.
+
+
+## Weight spreadsheet follow-up
+
+CSV/XLSX import and a populated downloadable weighing template now feed the reviewed batch workflow. Column mapping, worksheet selection, explicit unmatched/ambiguous-animal review and draft collision checks are included. See Weights-package-handoff.md for the combined additions, verification and deferred user checklist. User is remote on a phone and requested continued work without waiting for testing. Device-specific scale compatibility and retired-EID matching are not claimed.
