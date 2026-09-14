@@ -14,7 +14,7 @@ async function handlePOST(req:Request){try{
  const year=Number(body.year);if(!Number.isInteger(year)||year<1900||year>new Date().getFullYear())throw Error('Choose a valid year.');
  const db=rawDb();const a=body.data;if(!a||typeof a!=='object')throw Error('Record details are required.');
  const id=String(a.id||'');if(!/^[0-9a-f-]{36}$/i.test(id))throw Error('Invalid record identifier.');
- if(['archive','restore','edit','pedigree','ancestor-edit','tag','status'].includes(body.action)){
+ if(['archive','restore','edit','pedigree','ancestor-edit','tag','status','roll-year'].includes(body.action)){
   const existing=await db.prepare('SELECT * FROM animals WHERE id=?').bind(id).first<Animal>();
   if(!existing||(!existing.pedigreeOnly&&existing.firstYear>year))throw Error('Select an animal present in this year.');
   const operationId=String(a.operationId||'');if(!/^[0-9a-f-]{36}$/i.test(operationId))throw Error('Invalid change identifier.');
@@ -27,7 +27,15 @@ async function handlePOST(req:Request){try{
   const now=new Date().toISOString();
   const next:Animal & {tagChange?:any;statusEvent?:any}={...existing,version:existing.version+1};
   let graphVersion=-1;
-  if(body.action==='edit'||body.action==='ancestor-edit'){
+  if(body.action==='roll-year'){
+   const target=Number(a.targetYear);
+   if(existing.pedigreeOnly)throw Error('Select a flock animal.');
+   if(!Number.isInteger(target)||target<1900||target>=year||target>=new Date().getFullYear())throw Error('Choose a prior year.');
+   if(target>=existing.firstYear)throw Error('This animal is already recorded in that year or earlier.');
+   const birth=existing.dob?Number(existing.dob.slice(0,4)):existing.birthYear;
+   if(birth&&target<birth)throw Error('The selected year is before this animal was born.');
+   next.firstYear=target;
+  }else if(body.action==='edit'||body.action==='ancestor-edit'){
    if(typeof a.name!=='string'||typeof a.breed!=='string'||a.name.length>200||a.breed.length>200)throw Error('Name and breed must be 200 characters or fewer.');
    next.name=a.name.trim();next.breed=a.breed.trim();
    if(body.action==='edit'){for(const field of ['rightTag','leftTag','eid'] as const){if(field in a&&String(a[field]||'').trim()!==(existing[field]||''))throw Error('Use Manage tags to correct, retire, or assign a tag.');}}
@@ -102,7 +110,7 @@ async function handlePOST(req:Request){try{
   if(next.birthYear!==existing.birthYear){const number=await db.prepare('SELECT MAX(COALESCE((SELECT highWater FROM identity_counters WHERE yearKey=COALESCE(?,0)),0),COALESCE((SELECT MAX(birthSequence) FROM animals WHERE birthYear IS ? AND id!=?),0))+1 AS value').bind(next.birthYear,next.birthYear,id).first<any>();next.birthSequence=number.value;}
   const result=await db.batch([
    db.prepare('INSERT INTO animal_history (operationId,animalId,action,reason,before,after,createdAt) SELECT ?,?,?,?,?,?,? FROM animals WHERE id=? AND version=? AND (?=-1 OR (SELECT SUM(version) FROM animals)=?)').bind(operationId,id,body.action,reason,JSON.stringify(existing),JSON.stringify(next),now,id,a.version,graphVersion,graphVersion),
-   db.prepare('UPDATE animals SET archivedAt=?,name=?,origin=?,breed=?,sire=?,dam=?,dob=?,birthYear=?,birthSequence=?,pedigreeInfo=?,sex=?,rightTag=?,leftTag=?,eid=?,status=?,version=version+1 WHERE id=? AND version=? AND (?=-1 OR (SELECT SUM(version) FROM animals)=?)').bind(next.archivedAt||null,next.name,next.origin,next.breed,next.sire,next.dam,next.dob,next.birthYear,next.birthSequence??null,next.pedigreeInfo||'{}',next.sex,next.rightTag,next.leftTag,next.eid,next.status,id,a.version,graphVersion,graphVersion)
+   db.prepare('UPDATE animals SET firstYear=?,archivedAt=?,name=?,origin=?,breed=?,sire=?,dam=?,dob=?,birthYear=?,birthSequence=?,pedigreeInfo=?,sex=?,rightTag=?,leftTag=?,eid=?,status=?,version=version+1 WHERE id=? AND version=? AND (?=-1 OR (SELECT SUM(version) FROM animals)=?)').bind(next.firstYear,next.archivedAt||null,next.name,next.origin,next.breed,next.sire,next.dam,next.dob,next.birthYear,next.birthSequence??null,next.pedigreeInfo||'{}',next.sex,next.rightTag,next.leftTag,next.eid,next.status,id,a.version,graphVersion,graphVersion)
   ]);
   if(result[1].meta.changes<1)return json({error:'This animal changed in another view. Reload before trying again.'},409);
  }else if(body.action==='ancestor'){
