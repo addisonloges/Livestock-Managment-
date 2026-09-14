@@ -5,7 +5,7 @@ export type Animal=Ancestor & {ownershipEvents?:OwnershipEvent[];statusEvents?:S
 export type Weight={batchId?:string;version?:number;voided?:boolean;id:string;animalId:string;date:string;pounds:number;originalValue:number;unit:string;session:string};
 export function displayId(a:{seq:number;birthYear:number|null;birthSequence?:number|null}){return `${a.birthYear?String(a.birthYear).slice(-2):'?'}-${String(a.birthSequence??a.seq).padStart(3,'0')}`}
 export function label(a:Animal){return a.name||a.rightTag||a.leftTag||a.eid||displayId(a)}
-export function visibleInYear(a:{firstYear:number;status?:string;statusEvents?:StatusEvent[]},year:string){return presentInYear({...a,status:a.status||'Active'},year)}
+export function visibleInYear(a:{firstYear:number;pedigreeInfo?:string;status?:string;statusEvents?:StatusEvent[]},year:string){return presentInYear({...a,status:a.status||'Active'},year)}
 export function adg(weights:{date:string;pounds:number}[]){const w=[...weights].sort((a,b)=>a.date.localeCompare(b.date));if(w.length<2)return null;const a=w[w.length-2],b=w[w.length-1];const days=(Date.parse(b.date)-Date.parse(a.date))/86400000;return days>0?(b.pounds-a.pounds)/days:null}
 export function validDate(x:string){return /^\d{4}-\d{2}-\d{2}$/.test(x)&&!Number.isNaN(Date.parse(x))&&new Date(x).toISOString().slice(0,10)===x}
 export function validateAnimal(a:any){
