@@ -157,3 +157,10 @@ Unresolved design choices remain feed allocation, watch flags versus favorites, 
 
 
 Final local validation for this checkpoint: full build and all 74 automated tests pass. Final phone tests confirmed Lambing is in the Section menu, the litter form opens, Reports loads and offline reload works. Rollback preview/scope/confirmation/history passed without browser mutation. Final API tests passed full/species rollback and birth-year correction with number reservation. Local server session 47329 serves the current build; local recovery epoch is now 4. The latest source is still unpublished. Both explicit export approval requests remain pending; neither rejected action has been retried.
+
+
+## September 13 — authorized publication and owner contact follow-up
+
+User explicitly approved private record backup and GitHub export. Both completed. Private backup is in ignored work/live-before-connected-build-{flock,breeding}.json (records only, not media bytes). Initial v37 publication failed with incomplete SQL input; trigger bodies were changed to single lines, all migrations checked in SQLite, and v38 published successfully. Source 3b13a309ea418d8ec55cf4070e2349df60a40145. Live comparison confirmed all 119 animal records, prior fields, weights, histories and breeding data preserved; 119 intentional former-display-number history entries added.
+
+Subsequent owner contact linking: ownership form can choose a directory contact or use a manual name. Server resolves new contact names, rejects unavailable contacts, and preserves historical snapshots. Ownership form closes after saving. Checklist no longer claims full/scoped recovery is missing. 75 tests pass. Three design answer cards remain pending; no choices inferred.

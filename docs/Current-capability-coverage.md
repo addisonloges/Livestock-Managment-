@@ -1,13 +1,13 @@
 # Current capability coverage — September 13, 2026
 
-Working implementation; not a declaration of whole-project completion. Live remains v36. Local checkpoints e7d2daf, c9c6865 and 9a0e13d plus subsequent recovery work have not been published. Latest full build passed; 74 automated tests and local/browser integration checks passed. See Connected-build-checkpoint.md for subsequent updates.
+Working implementation; not a declaration of whole-project completion. The connected build is published privately as v38. All 119 pre-update animal records, previous fields, existing weights, histories and breeding data were verified against the private backup. Latest follow-up adds owner contact links and passes 75 automated tests. See Connected-build-checkpoint.md for subsequent updates.
 
 | Area | Implemented working capability | Remaining work / boundary |
 |---|---|---|
 | 1 Overall concept | Species and year workspaces; informational home; section dropdown | Per-browser species and separate year preferences implemented; architecture remains one partitioned database |
 | 2 Identity | Permanent UUID, birth-year number, former identifiers, multiple tags per ear, EID links, retirement/correction/swap | Final integrated review and import edge cases |
 | 3 Animal information | Optional sex/birth details, composition records and complete-parent inheritance | Broader batch-editor refinements deferred by user |
-| 4 Ownership/registry | Dated ownership, origin, registry details and dedicated paperwork | Reusable contact directory and transaction name snapshots now implemented; further profile contact linking remains |
+| 4 Ownership/registry | Dated ownership, origin, registry details and dedicated paperwork | Reusable contact directory and transaction name snapshots now implemented; profile ownership contact linking now retains historical name/share snapshots |
 | 5 Status/year | Dated exits, unknown exit dates, correction, reactivation, archived records | Cross-module historical reconciliation remains under review |
 | 6 Lifetime profile | Photos/history, documents, tags, pedigree, events, finances, custom values | Timeline presentation refinement |
 | 7 Pedigree/genetics | Multiple generations, unowned ancestors, evaluation records/CSV/history/files | Provider-specific import formats and richer trait comparisons |
