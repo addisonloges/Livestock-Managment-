@@ -9,7 +9,7 @@ export function farmCalendar(events:FarmEvent[],litters:Litter[],groups:Breeding
  for(const e of events.filter(e=>!e.voided&&e.species===species)){
   const base={section:'events',year:e.date.slice(0,4),recordId:e.id};
   rows.push({...base,date:e.date,title:e.title,type:e.kind});
-  if(e.dueDate)rows.push({...base,date:e.dueDate,title:e.title+' · Follow-up',type:'Follow-up'});
+  if(e.dueDate&&!(e.kind==='watch'&&e.watch?.resolvedDate))rows.push({...base,date:e.dueDate,title:e.title+' · Follow-up',type:'Follow-up'});
   for(const d of e.protocol?.doses||[]){const count=e.animalIds.filter(id=>doseState(d,id)==='Scheduled').length;if(count)rows.push({...base,date:d.date,title:e.protocol!.product+' · '+count+' animals scheduled',type:'Scheduled dose'});}
   if(e.protocol?.withdrawalEnd)rows.push({...base,date:e.protocol.withdrawalEnd,title:e.protocol.product+' · Withdrawal ends',type:'Withdrawal'});
  }
