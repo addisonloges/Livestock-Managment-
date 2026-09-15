@@ -1,0 +1,246 @@
+{
+  "feedingLb": 3,
+  "ingredients": [
+    {
+      "name": "Corn Grain Whole",
+      "pounds": 600,
+      "pricePerTon": 250,
+      "analysis": {
+        "id": "osu-v6-116",
+        "name": "Corn Grain Whole",
+        "source": "Meat Sheep Balancer v6 / Library Values row 116 (book values; verify with feed test)",
+        "nutrients": {
+          "dm": 88,
+          "de": 3.9,
+          "me": 3.2,
+          "tdn": 88,
+          "cp": 9,
+          "ca": 0.02,
+          "co": 0.04,
+          "k": 0.4,
+          "mg": 0.13,
+          "na": 0.02,
+          "p": 0.3,
+          "s": 0.12,
+          "cu": 4,
+          "fe": 26,
+          "mn": 6,
+          "mo": null,
+          "se": null,
+          "zn": 18,
+          "ndf": 9,
+          "adf": 3
+        }
+      }
+    },
+    {
+      "name": "Soybean Hulls",
+      "pounds": 200,
+      "pricePerTon": 200,
+      "analysis": {
+        "id": "osu-v6-276",
+        "name": "Soybean Hulls",
+        "source": "Meat Sheep Balancer v6 / Library Values row 276 (book values; verify with feed test)",
+        "nutrients": {
+          "dm": 90,
+          "de": 3.4,
+          "me": 2.8,
+          "tdn": 77,
+          "cp": 13,
+          "ca": 0.55,
+          "co": 0.12,
+          "k": 1.4,
+          "mg": null,
+          "na": 0.01,
+          "p": 0.17,
+          "s": 0.07,
+          "cu": 18,
+          "fe": 324,
+          "mn": 11,
+          "mo": null,
+          "se": null,
+          "zn": null,
+          "ndf": 62,
+          "adf": 46
+        }
+      }
+    },
+    {
+      "name": "Soybean Meal Solvent 49% CP",
+      "pounds": 200,
+      "pricePerTon": 465,
+      "analysis": {
+        "id": "osu-v6-278",
+        "name": "Soybean Meal Solvent 49% CP",
+        "source": "Meat Sheep Balancer v6 / Library Values row 278 (book values; verify with feed test)",
+        "nutrients": {
+          "dm": 91,
+          "de": 3.8,
+          "me": 3.1,
+          "tdn": 87,
+          "cp": 54,
+          "ca": 0.28,
+          "co": 0.1,
+          "k": 2.2,
+          "mg": 0.3,
+          "na": 0.04,
+          "p": 0.71,
+          "s": 0.11,
+          "cu": 25,
+          "fe": 133,
+          "mn": 32,
+          "mo": null,
+          "se": 0.34,
+          "zn": 24,
+          "ndf": 9,
+          "adf": 6
+        }
+      }
+    },
+    {
+      "name": "Molasses Cane Dried",
+      "pounds": 60,
+      "pricePerTon": 120,
+      "analysis": {
+        "id": "osu-v6-200",
+        "name": "Molasses Cane Dried",
+        "source": "Meat Sheep Balancer v6 / Library Values row 200 (book values; verify with feed test)",
+        "nutrients": {
+          "dm": 94,
+          "de": 3.3,
+          "me": 2.7,
+          "tdn": 74,
+          "cp": 9,
+          "ca": 1.1,
+          "co": 1.21,
+          "k": 3.6,
+          "mg": 0.47,
+          "na": 0.2,
+          "p": 0.15,
+          "s": 0.05,
+          "cu": 79,
+          "fe": 250,
+          "mn": 57,
+          "mo": null,
+          "se": null,
+          "zn": null,
+          "ndf": 7,
+          "adf": 3
+        }
+      }
+    },
+    {
+      "name": "Example Ewe Pellet",
+      "pounds": 25,
+      "pricePerTon": 1200,
+      "analysis": {
+        "id": "osu-v6-154",
+        "name": "Example Ewe Pellet",
+        "source": "Meat Sheep Balancer v6 / Library Values row 154 (book values; verify with feed test)",
+        "nutrients": {
+          "dm": 88.8,
+          "de": 2.88,
+          "me": 2.4,
+          "tdn": 74,
+          "cp": 40.2,
+          "ca": 2.04,
+          "co": null,
+          "k": 2.19,
+          "mg": 0.33,
+          "na": null,
+          "p": 0.78,
+          "s": 0.75,
+          "cu": 12.53,
+          "fe": 174.74,
+          "mn": 296.81,
+          "mo": null,
+          "se": 0.45,
+          "zn": 739,
+          "ndf": 14.1,
+          "adf": 7.6
+        }
+      }
+    },
+    {
+      "name": "Limestone Ground",
+      "pounds": 8,
+      "pricePerTon": 60,
+      "analysis": {
+        "id": "osu-v6-189",
+        "name": "Limestone Ground",
+        "source": "Meat Sheep Balancer v6 / Library Values row 189 (book values; verify with feed test)",
+        "nutrients": {
+          "dm": 98,
+          "de": 0,
+          "me": 0,
+          "tdn": 0,
+          "cp": 0,
+          "ca": 34,
+          "co": null,
+          "k": null,
+          "mg": 2.06,
+          "na": 0.06,
+          "p": 0.02,
+          "s": 0.17,
+          "cu": null,
+          "fe": 0.35,
+          "mn": null,
+          "mo": null,
+          "se": null,
+          "zn": 24,
+          "ndf": 0,
+          "adf": 0
+        }
+      }
+    },
+    {
+      "name": "Example Sheep Mineral",
+      "pounds": 8,
+      "pricePerTon": 2500,
+      "analysis": {
+        "id": "osu-v6-155",
+        "name": "Example Sheep Mineral",
+        "source": "Meat Sheep Balancer v6 / Library Values row 155 (book values; verify with feed test)",
+        "nutrients": {
+          "dm": 91.9,
+          "de": null,
+          "me": 0.3780487804878049,
+          "tdn": 30,
+          "cp": 5,
+          "ca": 16.78,
+          "co": 0.01,
+          "k": 0.31,
+          "mg": 4,
+          "na": 8.75,
+          "p": 8.9,
+          "s": 0.76,
+          "cu": 30,
+          "fe": 3000,
+          "mn": 2850,
+          "mo": null,
+          "se": 16.4,
+          "zn": 3680,
+          "ndf": 0,
+          "adf": 0
+        }
+      }
+    }
+  ],
+  "expected": {
+    "C21": 309.42779291553137,
+    "E19": 89.3544050862852,
+    "F5": 5.036125522468164,
+    "E25": 3.6692841805010974,
+    "F25": 2.239644686648502,
+    "G25": 16.672842870118068,
+    "H25": 0.5001852861035421,
+    "I25": 16.582942779291553,
+    "J25": 10.257874659400546,
+    "K25": 8.137047690463218,
+    "L25": 5.066808239782016,
+    "M25": 18.378125351498635,
+    "N25": 71.1571642506812,
+    "E29": 1.6059513811032424,
+    "F31": 20.43
+  }
+}

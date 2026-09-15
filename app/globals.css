@@ -206,3 +206,26 @@ body{background:var(--background);color:var(--foreground);font-family:Arial,sans
 @media(max-width:700px){.animal-profile-dialog{left:50%!important;right:auto!important}}
 
 .overview-header-actions,.overview-alert-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.overview-alert-button{gap:8px!important;min-height:40px;border-radius:7px!important}.overview-alert-button svg{color:#32664a}.alert-count{display:inline-flex;align-items:center;justify-content:center;min-width:23px;height:23px;padding:0 5px;border-radius:6px;background:#edf2ef;color:#526759;font-size:12px;font-variant-numeric:tabular-nums}.alert-count.has-alerts{background:#fff0d2;color:#78530c}.overview-alert-dialog{width:calc(100vw - 32px)!important;max-width:620px!important;max-height:85dvh;overflow:auto}.overview-alert-dialog h3{font:600 17px/1.4 Arial,sans-serif}.overview-alert-dialog section{border:0;padding:0}.overview-workspace>.panel-top{align-items:center;border-bottom:1px solid #dce4df;padding-bottom:14px;gap:12px}.workspace .overview-workspace>.plan-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}.workspace .overview-workspace>.plan-grid>div{background:#f7faf8;border:1px solid #dce4df;border-radius:8px;padding:14px}.workspace .overview-workspace>.plan-grid small{font-size:13px;color:#54685b}.workspace .overview-workspace>.plan-grid h3{font:650 25px/1.3 Arial,sans-serif;margin:7px 0 0;font-variant-numeric:tabular-nums}.workspace .overview-workspace>.plan-grid>div:nth-child(n+5){background:white}.overview-workspace>h3{border-top:1px solid #dce4df;padding-top:18px}@media(max-width:700px){.overview-workspace>.panel-top{flex-direction:column;align-items:flex-start}.overview-header-actions{width:100%}.overview-alert-actions{width:100%}.overview-alert-button{flex:1;font-size:12px!important}.workspace .overview-workspace>.plan-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media print{.overview-header-actions{display:none!important}}
+/* Ration workbook: wide, compact tables within the existing application shell. */
+.ration-dialog { width:min(1180px,calc(100vw - 32px))!important; max-width:1180px!important; }
+.ration-workspace { min-width:0; border:1px solid var(--border,#d3ddd7); border-radius:10px; padding:16px; }
+.ration-workspace legend { font-size:1.1rem; font-weight:700; padding:0 8px; }
+.ration-toolbar { margin:12px 0; }
+.ration-toolbar [role=tablist] { display:flex; flex-wrap:wrap; gap:6px; }
+.ration-table-scroll { max-width:100%; overflow:auto; margin:12px 0; border:1px solid var(--border,#d3ddd7); border-radius:6px; max-height:450px; }
+.ration-sheet { width:100%; border-collapse:collapse; font-size:.875rem; text-align:left; }
+.ration-sheet th,.ration-sheet td { border:1px solid var(--border,#d3ddd7); padding:6px 8px; vertical-align:top; }
+.ration-sheet thead th { background:var(--muted,#eef2ef); position:sticky; top:0; z-index:1; font-weight:650; }
+.ration-sheet tbody th { background:var(--muted,#eef2ef); min-width:170px; }
+.ration-sheet input { min-width:100px; padding:7px; }
+.ration-sheet select { min-width:220px; max-width:280px; margin-top:5px; }
+.ration-sheet input:focus,.ration-sheet select:focus { outline:2px solid #28744e; outline-offset:-1px; }
+.ration-metrics { display:flex; flex-wrap:wrap; gap:10px; margin:12px 0; }
+.ration-metrics>span { flex:1; min-width:180px; padding:12px; background:var(--muted,#eef2ef); border:1px solid var(--border,#d3ddd7); border-radius:6px; font-size:.875rem; }
+.ration-metrics strong { display:block; font-size:1rem; margin-top:4px; }
+.ration-workspace details,.ration-results details { margin:12px 0; }
+.ration-workspace summary,.ration-results summary { cursor:pointer; font-weight:600; padding:8px 0; }
+.ration-workspace a { text-decoration:underline; }
+@media(max-width:640px) { .ration-dialog { left:50%!important; padding:12px!important; } .ration-workspace { padding:8px; } }
+
+@media(max-width:640px) { [role=dialog].ration-dialog .ration-workspace .form-grid { grid-template-columns:1fr!important; } }
