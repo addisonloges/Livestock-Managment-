@@ -229,3 +229,24 @@ body{background:var(--background);color:var(--foreground);font-family:Arial,sans
 @media(max-width:640px) { .ration-dialog { left:50%!important; padding:12px!important; } .ration-workspace { padding:8px; } }
 
 @media(max-width:640px) { [role=dialog].ration-dialog .ration-workspace .form-grid { grid-template-columns:1fr!important; } }
+/* Shared animal selection worksheet: no paged animal dropdowns. */
+.animal-picker-trigger { width:100%; justify-content:space-between; min-height:40px; white-space:normal; text-align:left; font-size:14px; }
+.animal-picker-dialog { width:min(1240px,calc(100vw - 24px))!important; max-width:1240px!important; max-height:94dvh; overflow:auto; }
+.animal-sheet { min-width:0; width:100%; margin:10px 0; }
+.animal-sheet-tools { display:flex; flex-wrap:wrap; gap:8px; align-items:end; padding:10px; background:#edf3ef; border:1px solid #ccd8cf; border-radius:6px 6px 0 0; }
+.animal-sheet-tools label { display:flex; flex-direction:column; gap:5px; font-size:14px; font-weight:500; flex:1; min-width:130px; }
+.animal-sheet-tools label:first-child { flex:2; min-width:220px; }
+.animal-sheet-tools input:not([type=checkbox]),.animal-sheet-tools select { width:100%; padding:8px; border:1px solid #b9cbbb; border-radius:4px; background:white; color:#1b3528; font-size:14px; min-height:40px; }
+.animal-sheet-tools .animal-sheet-check { flex-direction:row; align-items:center; min-height:40px; }
+.animal-sheet input[type=checkbox],.animal-sheet input[type=radio] { width:18px; height:18px; accent-color:#245d42; cursor:pointer; }
+.animal-sheet-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:8px 0; font-size:14px; }
+.animal-sheet-actions span { margin-right:auto; }
+.animal-sheet-scroll { overflow:auto; max-height:42dvh; border:1px solid #ccd8cf; }
+.animal-sheet table { width:100%; min-width:920px; border-collapse:separate; border-spacing:0; text-align:left; font-size:14px; }
+.animal-sheet th,.animal-sheet td { border-bottom:1px solid #d5e0d8; border-right:1px solid #dce5de; padding:9px 10px; white-space:nowrap; }
+.animal-sheet thead th { position:sticky; top:0; z-index:2; background:#e5ede7; color:#284c36; }
+.animal-sheet th button { border:0; padding:0; background:none; font:inherit; color:inherit; cursor:pointer; }
+.animal-sheet tbody tr:nth-child(even) { background:#f5f8f6; }
+.animal-sheet tbody tr[data-selected=true] { background:#dfefe4; }
+.animal-sheet tbody tr:focus-within { outline:2px solid #337f52; outline-offset:-2px; }
+@media(max-width:640px) { .animal-picker-dialog { left:50%!important; padding:12px!important; } .animal-sheet-tools label:first-child { flex-basis:100%; } .animal-sheet-scroll { max-height:40dvh; } }

@@ -139,3 +139,11 @@ Existing animal records now support Set pedigree. Sire/dam selection uses same-s
 
 The Pedigree view now displays both paternal and maternal lines with three initial ancestor generations and per-branch expansion. Ancestor records can be created directly from a parent slot without ownership or farm-presence requirements. They store optional DOB/year, breed, breeder/farm, registry, registration number and source notes. Existing ancestor records can be reused in multiple branches. Pedigree-only records contribute to COI and parentage but do not count as flock animals or permit weight sessions. The original two migrations are unchanged; migration 0002 adds the record distinction and metadata. Existing animals retain their flock classification.
 
+
+## September 19 — animal selection worksheets
+
+Replaced animal dropdowns and checkbox lists with one shared searchable worksheet. Covers animal creation/weight entry, breeding males/females and male comparison, exposure members, pregnancy checks, lambing parents, pedigree roots/parents/import matches, breed composition, ewe relationships, weight import matches, adjusted growth, shared event forms (health/feed/financials/management), feed individual overrides, batch-edit selection, and prior/next-year rollovers.
+
+Columns: animal ID, name, right/left tags, EID, sex, breed and recorded status. Search, sex/breed filters, sortable headers, selected-only view, select/clear filtered results. No selection pagination. Eligibility is still provided by each workflow; historical parents and unowned ancestors remain available only where that workflow previously allowed them. Existing COI, per-batch limits, correction history and saved farm data are preserved.
+
+Validated production build, TypeScript and 87 existing regression checks. Isolated browser checks cover single-selection dialogs nested in forms, sorting, retaining checked animals through search, select/clear filtered behavior, 50-animal batch cap, lambing parent selection and phone sizing. No live test records created.

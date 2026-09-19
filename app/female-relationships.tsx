@@ -1,4 +1,5 @@
 "use client";
+import AnimalPicker from './animal-picker';
 import {useMemo,useState} from 'react';
 import {Button} from '@/components/ui/button';
 import {Select,SelectContent,SelectItem,SelectTrigger,SelectValue} from '@/components/ui/select';
@@ -12,7 +13,7 @@ export default function FemaleRelationships({animals,flock,species,matrix,onPedi
  const pairs=useMemo(()=>{if(!matrix)return [];const f=flock.filter(a=>a.sex==='Female'),pairs:{a:Animal;b:Animal;value:number}[]=[];for(let i=0;i<f.length;i++)for(let j=i+1;j<f.length;j++){const value=matrix.get(f[i].id,f[j].id);if(value>0)pairs.push({a:f[i],b:f[j],value})}return pairs.sort((a,b)=>b.value-a.value)},[flock,matrix]);
  const shown=a?pairs.filter(p=>p.a.id===a.id||p.b.id===a.id):pairs;
  const female=species==='Sheep'?'ewe':'doe';
- function picker(value:string,set:(v:string)=>void,exclude:string,title:string){return <label>{title}<Select value={value||'none'} onValueChange={v=>set(v==='none'?'':v)}><SelectTrigger aria-label={title}><SelectValue/></SelectTrigger><SelectContent><SelectItem value="none">Choose {female}</SelectItem>{females.filter(a=>a.id!==exclude).map(a=><SelectItem key={a.id} value={a.id}>{label(a)}</SelectItem>)}</SelectContent></Select></label>}
+ function picker(value:string,set:(v:string)=>void,exclude:string,title:string){return <label>{title}<AnimalPicker value={value||'none'} onValueChange={v=>set(v==='none'?'':v)} aria-label={title} animals={females.filter(a=>a.id!==exclude)} clearValue="none" placeholder="Choose"/></label>}
  const generation=(n:number)=>n===0?'This animal':n===1?'Parent':n===2?'Grandparent':`Ancestor, ${n} generations back`;
  return <section className="panel female-relationships"><p className="eyebrow">FEMALE FAMILY CONNECTIONS</p><h2>{species==='Sheep'?'Ewe':'Doe'} relationships</h2><p>Compare two females or browse related pairs in the selected year. Unowned ancestors and earlier generations are included in the calculation.</p><p className="caution">These estimates use recorded pedigree only. Missing ancestry can hide a relationship; 0% means no relationship was found in the records.</p>
  {loading?<p role="status">Loading relationships…</p>:error?<p role="alert" className="error">Relationships are unavailable until records reload successfully.</p>:!matrix?<p role="alert" className="error">The pedigree contains a missing ancestor or conflicting link. Correct it before comparing relationships.</p>:females.length<2?<p className="empty">Record at least two {female}s to compare them. Animals with unknown sex can be updated through Edit animal details.</p>:<>
