@@ -63,3 +63,7 @@ Groups now contains group assignments only; management flags remain accessible t
 Breeding has an explicit running-group dropdown and membership-date filter above the ewe worksheet. It supplements existing animal eligibility and COI checks without changing saved breeding exposure records.
 
 Validation: 94 automated tests passed, TypeScript passed, production build passed. Isolated local API checks passed for a persisted partial transfer, historical membership, preserved unselected animal, duplicate retry, and stale-version rejection without partial writes.
+
+### Group entry simplification — September 19, 2026
+
+Removed the duplicate Group assignment box. Create group has one editable name before saving, start/end dates and the animal worksheet. A separate opt-in existing-group mode uses one existing-group selector instead of a second name field. Each group row now has Transfer animals with its source group preselected. Existing transfer safeguards are unchanged.
