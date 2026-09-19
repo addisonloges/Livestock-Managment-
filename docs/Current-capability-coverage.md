@@ -55,3 +55,11 @@ Added a dedicated Groups navigation section with dated rosters, active/recorded 
 Management-group dropdowns now intersect existing eligibility rules in shared animal selection (including health, breeding, lambing, pregnancy checks, financial/event entry, batch edits and year rolls), the Animals register, batch weights, and saved report filters. Selection is deliberate through Select filtered; choosing a group does not save an event or change eligibility. Feed allocation continues using dated membership and saved allocation snapshots. Single-animal workflows remain single-animal workflows.
 
 Validation: 90 automated tests passed; TypeScript and production build passed. Isolated local browser checks covered creating a two-animal group, health selection, breeding eligibility, Animals and Reports filters, batch weights and phone dialog width. No production animal records were changed during QA.
+
+### Group workflow correction — September 19, 2026
+
+Groups now contains group assignments only; management flags remain accessible through animal events/profiles and the Overview watch icon. Group entry shows Start date and optional End date, without treatment/event category or follow-up fields. Transfer animals selects a source, existing/new destination, transfer date, optional destination end, and worksheet-selected animals. The source ends the day before transfer; earlier history and unselected animals are preserved. Transfers are atomic, version-checked, idempotent, and recovery-epoch guarded. Overlapping destination membership and later source assignments require review rather than silently rewriting future records. Transfers require an online confirmation.
+
+Breeding has an explicit running-group dropdown and membership-date filter above the ewe worksheet. It supplements existing animal eligibility and COI checks without changing saved breeding exposure records.
+
+Validation: 94 automated tests passed, TypeScript passed, production build passed. Isolated local API checks passed for a persisted partial transfer, historical membership, preserved unselected animal, duplicate retry, and stale-version rejection without partial writes.

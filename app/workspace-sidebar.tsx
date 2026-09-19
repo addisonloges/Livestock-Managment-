@@ -4,7 +4,7 @@ import {Sidebar,SidebarHeader,SidebarContent,SidebarFooter,SidebarMenu,SidebarMe
 export const workspaces:{name:string;icon:LucideIcon;items:{id:string;name:string}[]}[]=[
 {name:'Overview',icon:LayoutDashboard,items:[{id:'dashboard',name:'Dashboard'},{id:'calendar',name:'Calendar'}]},
 {name:'Animals',icon:Tags,items:[{id:'animals',name:'Animal register'},{id:'events',name:'Events & notes'},{id:'pedigree',name:'Pedigree & COI'},{id:'genetics',name:'Genetic evaluations'},{id:'deleted',name:'Deleted animals'}]},
-{name:'Groups',icon:Tags,items:[{id:'management',name:'Running groups & watch list'}]},
+{name:'Groups',icon:Tags,items:[{id:'management',name:'Running groups'}]},
 {name:'Breeding',icon:HeartHandshake,items:[{id:'breeding',name:'Groups & projects'}]},
 {name:'Lambing',icon:Leaf,items:[{id:'lambing',name:'Birth records'}]},
 {name:'Sessions',icon:ListChecks,items:[{id:'weights',name:'Weights & growth'},{id:'health',name:'Health & treatments'},{id:'feed',name:'Feed & rations'}]},
