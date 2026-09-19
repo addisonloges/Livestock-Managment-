@@ -47,3 +47,11 @@ Working implementation; not a declaration of whole-project completion. The conne
 User approved all three: feed costs use lb/head/day over dated membership with individual quantity/ration overrides; management pins become flags with category/reason and resolution; important inventory warnings also appear on the dashboard. Implemented in the operations follow-up.
 
 Feed allocations assign an existing Feed expense rather than creating duplicate cash expense. Priced ration versions determine relative costs. Actual bill total is conserved to the cent. Preview warns on overlapping allocated bills and excluded inactive/unknown-status days. Changing an allocation requires a new preview; saved membership and ration snapshots retain prior calculations. Full unattended weekly/monthly scheduling still requires hosting infrastructure unavailable through the current Sites interface. Do not claim automatic backups are running.
+
+## Running groups — September 19, 2026
+
+Added a dedicated Groups navigation section with dated rosters, active/recorded counts, membership history, and existing audited correction/void/restore workflows. End the old membership period and add the next roster to preserve moves; editing a period corrects that period. Animals may belong to multiple groups.
+
+Management-group dropdowns now intersect existing eligibility rules in shared animal selection (including health, breeding, lambing, pregnancy checks, financial/event entry, batch edits and year rolls), the Animals register, batch weights, and saved report filters. Selection is deliberate through Select filtered; choosing a group does not save an event or change eligibility. Feed allocation continues using dated membership and saved allocation snapshots. Single-animal workflows remain single-animal workflows.
+
+Validation: 90 automated tests passed; TypeScript and production build passed. Isolated local browser checks covered creating a two-animal group, health selection, breeding eligibility, Animals and Reports filters, batch weights and phone dialog width. No production animal records were changed during QA.
