@@ -78,6 +78,13 @@
       "when": 1789838517585,
       "tag": "0010_real_lizard",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1789862429735,
+      "tag": "0011_yielding_roughhouse",
+      "breakpoints": true
     }
   ]
 }

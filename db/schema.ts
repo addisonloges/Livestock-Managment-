@@ -19,5 +19,7 @@ export const recoveryControl=sqliteTable('recovery_control',{id:integer('id').pr
 export const identityCounters=sqliteTable('identity_counters',{yearKey:integer('yearKey').primaryKey(),highWater:integer('highWater').notNull()});
 
 export const recoveryRuns=sqliteTable('recovery_runs',{id:text('id').primaryKey(),epoch:integer('epoch').notNull(),scope:text('scope').notNull(),safetyKey:text('safetyKey').notNull(),createdAt:text('createdAt').notNull(),counts:text('counts').notNull()});
-export const dashboardSessions=sqliteTable('dashboard_sessions',{tokenHash:text('tokenHash').primaryKey().notNull(),expires:integer('expires').notNull()});
+export const dashboardSessions=sqliteTable('dashboard_sessions',{tokenHash:text('tokenHash').primaryKey().notNull(),expires:integer('expires').notNull(),userId:text('userId')});
 export const dashboardLoginAttempts=sqliteTable('dashboard_login_attempts',{key:text('key').primaryKey().notNull(),attempts:integer('attempts').notNull(),expires:integer('expires').notNull()});
+
+export const dashboardChanges=sqliteTable('dashboard_changes',{id:text('id').primaryKey(),userId:text('userId').notNull(),createdAt:text('createdAt').notNull(),path:text('path').notNull(),action:text('action').notNull(),details:text('details').notNull(),outcome:text('outcome').notNull(),status:integer('status')});
