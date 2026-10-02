@@ -1,11 +1,12 @@
 "use client";
+import {localDate} from "@/lib/local-date";
 import {useState} from 'react';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {statuses} from '@/lib/animal-status';
 import {type Animal} from '@/lib/livestock';
 export default function AnimalStatus({animal,year,onSaved}:{animal:Animal;year:string;onSaved:()=>Promise<void>}){
- const [status,setStatus]=useState(animal.statusEvents?.some(e=>!e.date)?animal.status:'Sold'),[date,setDate]=useState(year===String(new Date().getFullYear())?new Date().toLocaleDateString('en-CA'):year+'-01-01'),[cull,setCull]=useState(false),[cullReason,setCullReason]=useState(''),[reason,setReason]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false),[operationId]=useState(()=>crypto.randomUUID());
+ const [status,setStatus]=useState(animal.statusEvents?.some(e=>!e.date)?animal.status:'Sold'),[date,setDate]=useState(localDate()),[cull,setCull]=useState(false),[cullReason,setCullReason]=useState(''),[reason,setReason]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false),[operationId]=useState(()=>crypto.randomUUID());
  const [correctLatest,setCorrectLatest]=useState(false);
  const isCull=status==='Culled'||(['Sold','Transferred'].includes(status)&&cull);
  async function save(e:React.FormEvent){e.preventDefault();const submittedDate=String(new FormData(e.currentTarget as HTMLFormElement).get('effectiveDate')||'');setBusy(true);setError('');try{const r=await fetch('/api/flock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'status',year,data:{id:animal.id,version:animal.version,operationId,status,date:submittedDate,correctLatest,exitReason:isCull?'Cull':'',cullReason:isCull?cullReason:'',reason}})});const d:any=await r.json();if(!r.ok)throw Error(d.error);await onSaved()}catch(e){setError((e as Error).message)}finally{setBusy(false)}}

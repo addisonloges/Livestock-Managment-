@@ -1,4 +1,5 @@
 "use client";
+import {localDate} from "@/lib/local-date";
 import AnimalPicker from './animal-picker';
 import {useState,useRef} from 'react';
 import {type Animal,type Weight,label} from '@/lib/livestock';
@@ -6,7 +7,7 @@ import {Button} from '@/components/ui/button';
 import {ageDays,adjustedGrowth,adjustedGrowthSource} from '@/lib/adjusted-growth';
 export default function AdjustedGrowth({animals,weights,year}:{animals:Animal[];weights:Weight[];year:string}){
  const saveIdentity=useRef<{id:string;operationId:string;signature:string}|null>(null);
- const [reviewDate,setReviewDate]=useState(year===String(new Date().getFullYear())?new Date().toISOString().slice(0,10):''),[saving,setSaving]=useState(false),[notice,setNotice]=useState('');
+ const [reviewDate,setReviewDate]=useState(localDate()),[saving,setSaving]=useState(false),[notice,setNotice]=useState('');
  const [id,setId]=useState(''),[wean,setWean]=useState(''),[post,setPost]=useState(''),[factor,setFactor]=useState(''),[reference,setReference]=useState('');
  const animal=animals.find(a=>a.id===id),rows=weights.filter(w=>w.animalId===id&&!w.voided).sort((a,b)=>a.date.localeCompare(b.date)),w=rows.find(w=>w.id===wean),p=rows.find(w=>w.id===post),birth=rows.find(w=>w.date===animal?.dob);let result:ReturnType<typeof adjustedGrowth>|null=null,error='';
  if(animal?.dob&&w&&factor&&reference.trim()){try{result=adjustedGrowth(animal.dob,birth||null,w,p||null,Number(factor))}catch(e){error=(e as Error).message}}

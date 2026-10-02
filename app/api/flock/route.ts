@@ -1,3 +1,4 @@
+import {birthYearValue} from '@/lib/birth-details';
 import {withReadEpoch,withWriteEpoch} from '@/db/recovery-context';
 import {shares} from '@/lib/breeding-projects';
 import {resolvedOwnership} from '@/lib/ownership';
@@ -46,13 +47,13 @@ async function handlePOST(req:Request){try{
    if(body.action==='edit'&&'info' in a){
     if(!a.info||typeof a.info!=='object'||Array.isArray(a.info))throw Error('Invalid registration details.');
     const info=JSON.parse(existing.pedigreeInfo||'{}');
-    for(const field of ['registry','registrationNumber','membershipId','flockNameId','farm','notes']){if(field in a.info){const value=a.info[field];if(typeof value!=='string'||value.length>(field==='notes'?2000:200))throw Error('Registration details or notes exceed the allowed length.');info[field]=value.trim();}}
+    for(const field of ['generation','registry','registrationNumber','membershipId','flockNameId','farm','notes']){if(field in a.info){const value=a.info[field];if(typeof value!=='string'||value.length>(field==='notes'?2000:200))throw Error('Registration details or notes exceed the allowed length.');info[field]=value.trim();}}
     if('breedComposition' in a.info){info.breedComposition=shares(a.info.breedComposition);if(typeof a.info.compositionSource!=='string'||a.info.compositionSource.length>500||info.breedComposition.length&&!a.info.compositionSource.trim())throw Error('Enter the source of recorded breed percentages.');info.compositionSource=a.info.compositionSource.trim();}
     next.pedigreeInfo=JSON.stringify(info);
    }
    if(body.action==='edit'&&('sex' in a||'dob' in a||'birthYear' in a)){
     next.sex=a.sex??existing.sex;next.dob='dob' in a?(a.dob||null):existing.dob;
-    next.birthYear=next.dob?Number(next.dob.slice(0,4)):'birthYear' in a?(a.birthYear??null):existing.birthYear;
+    next.birthYear=birthYearValue(next.dob,'birthYear' in a?a.birthYear:existing.birthYear);
     validateAnimal({...next,origin:next.pedigreeOnly?'Purchased':next.origin});
     const {results}=await db.prepare('SELECT * FROM animals').all<Animal>();graphVersion=results.reduce((sum,p)=>sum+p.version,0);
     for(const child of results.filter(p=>p.sire===id||p.dam===id)){if((child.sire===id&&next.sex!=='Male')||(child.dam===id&&next.sex!=='Female'))throw Error('This animal is already linked as a parent. Correct those links before changing its sex.');validateParentDates(child,next)}
@@ -63,7 +64,7 @@ async function handlePOST(req:Request){try{
    if(body.action==='ancestor-edit'){
     if(!existing.pedigreeOnly)throw Error('This action only edits pedigree-only records.');
     if(!next.name)throw Error('Enter an ancestor name or identifying label.');
-    next.dob=a.dob||null;next.birthYear=next.dob?Number(next.dob.slice(0,4)):a.birthYear??null;
+    next.dob=a.dob||null;next.birthYear=birthYearValue(next.dob,a.birthYear);
     next.pedigreeInfo=JSON.stringify({...JSON.parse(existing.pedigreeInfo||'{}'),...ancestorInfo(a.info)});
     validateAnimal({...next,origin:'Purchased',firstYear:new Date().getFullYear()});
     const {results}=await db.prepare('SELECT * FROM animals').all<Animal>();
@@ -120,7 +121,7 @@ async function handlePOST(req:Request){try{
   const info=JSON.stringify(ancestorInfo(a.info));
   const existing=await db.prepare('SELECT id,pedigreeOnly FROM animals WHERE id=?').bind(id).first<Animal>();
   if(existing){if(!existing.pedigreeOnly)throw Error('Record identifier already used.');return json({saved:true,id})}
-  await db.prepare('INSERT INTO animals (id,species,name,sex,origin,dob,birthYear,firstYear,breed,status,pedigreeOnly,pedigreeInfo,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(id,a.species,a.name.trim(),a.sex,'Pedigree only',a.dob||null,a.dob?Number(a.dob.slice(0,4)):a.birthYear??null,year,String(a.breed||'').trim(),'Reference',1,info,new Date().toISOString()).run();
+  await db.prepare('INSERT INTO animals (id,species,name,sex,origin,dob,birthYear,firstYear,breed,status,pedigreeOnly,pedigreeInfo,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(id,a.species,a.name.trim(),a.sex,'Pedigree only',a.dob||null,birthYearValue(a.dob,a.birthYear),year,String(a.breed||'').trim(),'Reference',1,info,new Date().toISOString()).run();
  }else if(body.action==='animal'){
   const colors:Record<string,string>={};
   for(const field of ['rightTag','leftTag']){const color=a[field+'Color']??'';if(String(a[field]||'').trim()&&(typeof color!=='string'||color.length>60))throw Error('Tag colors must be text up to 60 characters.');colors[field+'Color']=String(a[field]||'').trim()?color.trim():'';}
@@ -129,7 +130,7 @@ async function handlePOST(req:Request){try{
   const {results}=await db.prepare('SELECT * FROM animals').all<Animal>();
   for(const role of ['sire','dam'] as const){if(a[role]){const p=results.find(x=>x.id===a[role]);if(!p||p.species!==a.species||p.sex!==(role==='sire'?'Male':'Female'))throw Error('Parent must be a recorded animal of the same species and correct sex.');validateParentDates({...a,birthYear:a.dob?Number(a.dob.slice(0,4)):a.birthYear},p);}}
   relationshipMatrix([...results,{id,sire:a.sire||null,dam:a.dam||null}]);
-  const vals=[id,a.species,String(a.name||'').trim(),String(a.rightTag||'').trim(),String(a.leftTag||'').trim(),String(a.eid||'').trim()||null,a.sex,a.origin,a.dob||null,a.dob?Number(a.dob.slice(0,4)):a.birthYear??null,year,String(a.breed||'').trim(),a.sire||null,a.dam||null,JSON.stringify(colors),new Date().toISOString()];
+  const vals=[id,a.species,String(a.name||'').trim(),String(a.rightTag||'').trim(),String(a.leftTag||'').trim(),String(a.eid||'').trim()||null,a.sex,a.origin,a.dob||null,birthYearValue(a.dob,a.birthYear),year,String(a.breed||'').trim(),a.sire||null,a.dam||null,JSON.stringify(colors),new Date().toISOString()];
   await db.prepare('INSERT INTO animals (id,species,name,rightTag,leftTag,eid,sex,origin,dob,birthYear,firstYear,breed,sire,dam,pedigreeInfo,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(...vals).run();
  }else if(body.action==='weight'){
   if(!validDate(a.date)||Number(a.date.slice(0,4))!==year||a.date>new Date().toISOString().slice(0,10))throw Error('Weight date must be in the selected year and not in the future.');

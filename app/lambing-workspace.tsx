@@ -17,7 +17,7 @@ export default function LambingWorkspace({animals,species,year,onSaved,onYearCha
  useEffect(()=>{load();const refresh=()=>{load()};window.addEventListener('flock-synced',refresh);return()=>window.removeEventListener('flock-synced',refresh)},[]);
  const names=(id:string)=>{const a=animals.find(a=>a.id===id);return a?label(a):'Unknown'};
  const shown=litters.filter(l=>!!l.voided===showVoided&&l.species===species&&(year==='all'||l.date.startsWith(year)));
- function start(){setAction('save');setReason('');setDraft({id:crypto.randomUUID(),version:0,species,date:year===String(new Date().getFullYear())?new Date().toISOString().slice(0,10):year+'-01-01',damId:'',sireId:'',groupId:'',assistance:'',notes:'',lambs:[fresh()]});setOp(crypto.randomUUID());setReview(false);setError('')}
+ function start(){setAction('save');setReason('');setDraft({id:crypto.randomUUID(),version:0,species,date:'',damId:'',sireId:'',groupId:'',assistance:'',notes:'',lambs:[fresh()]});setOp(crypto.randomUUID());setReview(false);setError('')}
  function change(k:keyof Litter,v:any){setDraft(d=>d?{...d,[k]:v}:d)}
  function lamb(i:number,k:keyof LambEntry,v:any){setDraft(d=>d?{...d,lambs:d.lambs.map((x,n)=>n===i?{...x,[k]:v}:x)}:d)}
  async function save(){if(!draft)return;setBusy(true);setError('');try{const r=await fetch('/api/flock/lambing',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({year:draft.version>0&&action==='save'?draft.date.slice(0,4):year,data:draft,operationId:op,action,reason})});const d:any=await r.json();if(!r.ok)throw Error(d.error);setDraft(null);await Promise.all([load(),onSaved()]);if(draft.date.slice(0,4)!==year)onYearChange?.(draft.date.slice(0,4))}catch(e){setError((e as Error).message)}finally{setBusy(false)}}

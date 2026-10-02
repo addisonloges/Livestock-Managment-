@@ -1,4 +1,5 @@
 "use client";
+import {localDate} from "@/lib/local-date";
 import {useState} from 'react';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
@@ -6,7 +7,7 @@ import {tagSlots} from '@/lib/tag-records';
 import {type Animal} from '@/lib/livestock';
 export default function AnimalTags({animal,year,history,onSaved}:{animal:Animal;year:string;history:any[];onSaved:()=>Promise<void>}){
  const slots=tagSlots(animal),meta=JSON.parse(animal.pedigreeInfo||'{}');
- const [mode,setMode]=useState('correct'),[field,setField]=useState(''),[otherField,setOther]=useState(''),[ear,setEar]=useState('Left'),[value,setValue]=useState(''),[color,setColor]=useState(''),[eidPosition,setPosition]=useState(meta.eidTagPosition||''),[replacementEid,setReplacement]=useState(''),[date,setDate]=useState(year===String(new Date().getFullYear())?new Date().toLocaleDateString('en-CA'):year+'-01-01'),[reason,setReason]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[editing,setEditing]=useState(false),[operationId,setOperation]=useState(()=>crypto.randomUUID());
+ const [mode,setMode]=useState('correct'),[field,setField]=useState(''),[otherField,setOther]=useState(''),[ear,setEar]=useState('Left'),[value,setValue]=useState(''),[color,setColor]=useState(''),[eidPosition,setPosition]=useState(meta.eidTagPosition||''),[replacementEid,setReplacement]=useState(''),[date,setDate]=useState(localDate()),[reason,setReason]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[editing,setEditing]=useState(false),[operationId,setOperation]=useState(()=>crypto.randomUUID());
  const events=history.flatMap(h=>{try{const e=JSON.parse(h.after).tagChange;return e?[{...e,id:h.operationId,reason:h.reason}]:[]}catch{return []}});
  const name=(id:string)=>{const t=slots.find(t=>t.id===id);return t?`${t.ear} · ${t.number||'empty'}${t.color?' · '+t.color:''}`:id==='eid'?'EID':id};
  function start(m:string){setMode(m);setField('');setOther('');setValue('');setColor('');setReplacement('');setReason('');setError('');setOperation(crypto.randomUUID());setEditing(true)}

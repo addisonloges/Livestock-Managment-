@@ -1,9 +1,10 @@
+import {birthYearValue,fillBirthYear} from './birth-details.ts';
 import {validateAnimal,validateParentDates,type Animal} from './livestock.ts';
 
-export const importFields = ['recordKey','species','name','sex','origin','dob','birthYear','firstYear','rightTag','rightTagColor','tagColors','leftTag','leftTagColor','additionalTagNumber','additionalTagColor','additionalTagEar','eid','breed','pedigreeOnly','sireKey','damKey','farm','registry','registrationNumber','notes'] as const;
+export const importFields = ['recordKey','species','name','sex','origin','dob','birthYear','firstYear','rightTag','rightTagColor','tagColors','leftTag','leftTagColor','additionalTagNumber','additionalTagColor','additionalTagEar','eid','breed','pedigreeOnly','sireKey','damKey','farm','generation','registry','registrationNumber','notes'] as const;
 export type ImportField=typeof importFields[number];
 export type ImportRow=Record<ImportField,string>&{id:string};
-export const fieldLabels:Record<ImportField,string>={recordKey:'Import key',species:'Species',name:'Name',sex:'Sex',origin:'Origin',dob:'Birth date',birthYear:'Birth year',firstYear:'First recorded year',rightTag:'Right tag',rightTagColor:'Right tag color',tagColors:'Tag colors (right/left)',leftTag:'Left tag',leftTagColor:'Left tag color',additionalTagNumber:'Additional tag number',additionalTagColor:'Additional tag color',additionalTagEar:'Additional tag ear',eid:'EID',breed:'Breed',pedigreeOnly:'Unowned ancestor',sireKey:'Sire import key',damKey:'Dam import key',farm:'Breeder / farm',registry:'Registry',registrationNumber:'Registration number',notes:'Notes / source'};
+export const fieldLabels:Record<ImportField,string>={recordKey:'Import key',species:'Species',name:'Name',sex:'Sex',origin:'Origin',dob:'Birth date',birthYear:'Birth year',firstYear:'First recorded year',rightTag:'Right tag',rightTagColor:'Right tag color',tagColors:'Tag colors (right/left)',leftTag:'Left tag',leftTagColor:'Left tag color',additionalTagNumber:'Additional tag number',additionalTagColor:'Additional tag color',additionalTagEar:'Additional tag ear',eid:'EID',breed:'Breed',pedigreeOnly:'Unowned ancestor',sireKey:'Sire import key',damKey:'Dam import key',farm:'Breeder / farm',generation:'Generation (optional)',registry:'Registry',registrationNumber:'Registration number',notes:'Notes / source'};
 export function blankImportRow(species:string,year:string,key:string):ImportRow{return {...Object.fromEntries(importFields.map(k=>[k,''])),id:crypto.randomUUID(),recordKey:key,species,sex:'',origin:'Purchased',firstYear:year,pedigreeOnly:'No'} as ImportRow}
 export function mapImportRows(grid:string[][],mapping:string[],species:string,year:string):ImportRow[]{
  return grid.slice(1).map((cells,i)=>{
@@ -38,7 +39,7 @@ export function normalizeImportRow(r:ImportRow):ImportRow{
  n.species=({sheep:'Sheep',goat:'Goats',goats:'Goats'} as Record<string,string>)[canonical(n.species)]||n.species;
  n.origin=({purchase:'Purchased',purchsae:'Purchased',purchased:'Purchased',bought:'Purchased',raised:'Home-raised',homeraised:'Home-raised',homebred:'Home-raised'} as Record<string,string>)[canonical(n.origin)]||n.origin;
  n.pedigreeOnly=['yes','true','1'].includes(n.pedigreeOnly.toLowerCase())?'Yes':['no','false','0',''].includes(n.pedigreeOnly.toLowerCase())?'No':n.pedigreeOnly;
- return n;
+ return fillBirthYear(n);
 }
 export function prepareImport(input:ImportRow[],existing:Animal[],year:number){
  if(!Array.isArray(input)||!input.length||input.length>200)throw Error('Import between 1 and 200 animals at a time.');
@@ -52,7 +53,7 @@ export function prepareImport(input:ImportRow[],existing:Animal[],year:number){
   for(const k of importFields)if(r[k].length>(k==='notes'?2000:200))throw Error(`${fieldLabels[k]} is too long.`);
   for(const field of ['rightTag','leftTag'] as const)if(r[field]&&r[field+'Color' as ImportField].length>60)throw Error('Enter '+fieldLabels[field]+' color (up to 60 characters).');
   if(r.additionalTagNumber&&(r.additionalTagColor.length>60||!['left','right'].includes(r.additionalTagEar.toLowerCase())))throw Error('An additional tag needs a Left or Right ear; color may be filled in later.');
-  const a={...r,dob:r.dob||null,birthYear:r.dob?Number(r.dob.slice(0,4)):r.birthYear?Number(r.birthYear):null,firstYear:Number(r.firstYear),pedigreeOnly:r.pedigreeOnly==='Yes'?1:0,sire:null,dam:null} as unknown as Animal;
+  const a={...r,dob:r.dob||null,birthYear:birthYearValue(r.dob,r.birthYear),firstYear:Number(r.firstYear),pedigreeOnly:r.pedigreeOnly==='Yes'?1:0,sire:null,dam:null} as unknown as Animal;
   validateAnimal({...a,origin:a.pedigreeOnly?'Purchased':a.origin});if(a.firstYear>year)throw Error('First recorded year cannot be later than the selected year.');return a;
  }catch(e){errors.push(`${prefix}: ${(e as Error).message}`);return null}});
  const all=[...existing,...candidates.filter(Boolean) as Animal[]];
