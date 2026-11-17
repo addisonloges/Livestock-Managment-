@@ -1,6 +1,24 @@
 import {type Animal,validDate,validateParentDates,validateAnimal} from './livestock.ts';
 import {offspring} from './breeding-projects.ts';
 import {type BreedingGroup} from './breeding.ts';
+import {addDays} from './breeding-projects.ts';
+
+export function lambingExposures(groups:BreedingGroup[],species:string,damId:string,birthDate:string){
+ const eligible=groups.filter(g=>g.species===species&&!g.archivedAt&&['Exposed','Completed'].includes(g.state)&&validDate(g.start)&&validDate(birthDate)&&g.eweIds.includes(damId)&&g.start<birthDate).filter(g=>{
+  const individual=g.exposures?.filter(x=>x.eweId===damId);
+  return !individual?.length||individual.some(x=>x.start<birthDate);
+ });
+ const matching=eligible.filter(g=>{
+  const profile=g.projectSnapshot;
+  if(!profile?.gestationMin||!profile.gestationMax)return false;
+  const individual=g.exposures?.filter(x=>x.eweId===damId);
+  const periods=individual?.length?individual:[g];
+  return periods.some(p=>birthDate>=addDays(p.start,profile.gestationMin!)&&
+   (!(p.end||g.end)||birthDate<=addDays(p.end||g.end,profile.gestationMax!)));
+ });
+ return {eligible,candidates:eligible.filter(g=>matching.includes(g)||!g.projectSnapshot?.gestationMin||!g.projectSnapshot.gestationMax),suggestion:matching.length===1&&eligible.every(g=>
+  g.id===matching[0].id||g.projectSnapshot?.gestationMin&&g.projectSnapshot.gestationMax)?matching[0]:null};
+}
 export type LambEntry={id:string;name:string;sex:string;rightTag:string;leftTag:string;rightTagColor:string;leftTagColor:string;eid:string;outcome:'Alive'|'Stillborn';birthWeight:number|null;unit:'lb'|'kg';cause:string};
 export type Litter={preLambingWeightId?:string;id:string;version:number;species:string;date:string;damId:string;sireId:string;groupId:string;assistance:string;notes:string;lambs:LambEntry[];voided?:boolean;voidedAt?:string;voidSnapshot?:Animal[]};
 export const isUuid=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
