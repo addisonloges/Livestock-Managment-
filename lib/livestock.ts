@@ -35,7 +35,7 @@ export function isFlockAnimal(a:{pedigreeOnly?:number;archivedAt?:string|null}){
 export function ancestorInfo(value:unknown){
  const source=value&&typeof value==='object'?value as Record<string,unknown>:{};
  const result:Record<string,string>={};
- for(const field of ['farm','registry','registrationNumber','notes']){
+ for(const field of ['generation','farm','registry','registrationNumber','notes']){
   const v=source[field]??'';if(typeof v!=='string'||v.length>(field==='notes'?2000:200))throw Error('Ancestor details exceed the allowed length.');result[field]=v.trim();
  }
  return result;

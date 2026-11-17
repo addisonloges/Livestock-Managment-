@@ -1,10 +1,12 @@
 import {validateProject,type Project} from './breeding-projects.ts';
 import {type Animal,validDate,relationshipMatrix,projectedCoi} from './livestock.ts';
 export type PregnancyCheck={id:string;eweId:string;date:string;result:string;method:string;fetuses:number|null;notes:string};
-export type BreedingGroup={id:string;version:number;species:string;year:number;name:string;ramId:string;eweIds:string[];plannedStart?:string;start:string;end:string;state:string;notes:string;projectSnapshot?:Project|null;archivedAt?:string|null;exposures?:{eweId:string;start:string;end:string}[];pregnancyChecks?:PregnancyCheck[]};
+export type BreedingGroup={productionSystem?:'Accelerated'|'Non-accelerated'|'Unspecified';productionLinks?:Record<string,{weightId:string;conditionId:string;outcome:'Unresolved'|'Confirmed no lambing';confirmedDate:string}>;id:string;version:number;species:string;year:number;name:string;ramId:string;eweIds:string[];plannedStart?:string;start:string;end:string;state:string;notes:string;projectSnapshot?:Project|null;archivedAt?:string|null;exposures?:{eweId:string;start:string;end:string}[];pregnancyChecks?:PregnancyCheck[]};
 export function normalizeGroup(g:BreedingGroup):BreedingGroup{return g.plannedStart===undefined&&g.state==='Planned'?{...g,plannedStart:g.start||'',start:''}:{...g,plannedStart:g.plannedStart||''};}
 export function groupDate(g:BreedingGroup){return g.start||g.plannedStart||'';}
 export function validateGroup(g:BreedingGroup,animals:Animal[]){
+ if(g.productionSystem!==undefined&&!['Accelerated','Non-accelerated','Unspecified'].includes(g.productionSystem))throw Error('Choose a valid lambing system.');
+ if(g.productionLinks){if(typeof g.productionLinks!=='object'||Array.isArray(g.productionLinks))throw Error('Invalid cycle links.');for(const [id,l] of Object.entries(g.productionLinks)){if(!g.eweIds.includes(id)||!l||typeof l.weightId!=='string'||typeof l.conditionId!=='string'||!['Unresolved','Confirmed no lambing'].includes(l.outcome)||typeof l.confirmedDate!=='string'||l.outcome==='Confirmed no lambing'&&(!g.start||!validDate(l.confirmedDate)||l.confirmedDate<g.start||l.confirmedDate>new Date().toISOString().slice(0,10)))throw Error('Cycle links require an exposed female and a dated confirmation for zero outcomes.');}}
  if(g.projectSnapshot)validateProject(g.projectSnapshot);
  if(!g.name?.trim()||g.name.length>200)throw Error('Enter a group name up to 200 characters.');
  if(!['Planned','Exposed','Completed','Cancelled'].includes(g.state))throw Error('Choose a group state.');

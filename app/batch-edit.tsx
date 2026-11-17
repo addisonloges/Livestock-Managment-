@@ -1,8 +1,10 @@
 "use client";
+import {takeSectionEntry} from '@/lib/section-entry';
 import {suggestionList} from "@/lib/entry-suggestions";
 import {fillBirthYear,birthYearMismatch,birthMismatchMessage} from "@/lib/birth-details";
 import {AnimalSheet} from './animal-picker';
-import {useState} from 'react';
+import type {SectionEntryRequest} from '@/lib/section-entry';
+import {useEffect,useState} from 'react';
 import {type Animal,label,displayId} from '@/lib/livestock';
 import {Button} from '@/components/ui/button';
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '@/components/ui/dialog';
@@ -11,13 +13,14 @@ type Field=keyof typeof fields;
 type Draft=Record<Field,string>;
 const choices:Partial<Record<Field,string[]>>={sex:['Unknown','Female','Male','Castrated male'],origin:['Purchased','Home-raised']};
 function values(a:Animal):Draft{const info=JSON.parse(a.pedigreeInfo||'{}');return Object.fromEntries(Object.keys(fields).map(k=>[k,k in a?String((a as any)[k]??''):String(info[k]||'')])) as Draft}
-export default function BatchEdit({animals,year,disabled,onSaved}:{animals:Animal[];year:string;disabled:boolean;onSaved:()=>Promise<void>}){
+export default function BatchEdit({animals,year,disabled,onSaved,entryRequest}:{entryRequest?:SectionEntryRequest;animals:Animal[];year:string;disabled:boolean;onSaved:()=>Promise<void>}){
  const [open,setOpen]=useState(false),[query,setQuery]=useState(''),[selected,setSelected]=useState<string[]>([]),[rows,setRows]=useState<Animal[]>([]),[draft,setDraft]=useState<Record<string,Draft>>({}),[stage,setStage]=useState('select'),[page,setPage]=useState(0),[reason,setReason]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false),[saved,setSaved]=useState<string[]>([]),[operations,setOperations]=useState<Record<string,string>>({});
  const [field,setField]=useState<Field>('breed'),[value,setValue]=useState('');
  const candidates=animals.filter(a=>!a.pedigreeOnly&&!a.archivedAt&&[label(a),displayId(a),a.rightTag,a.leftTag,a.eid,a.breed].some(v=>v?.toLowerCase().includes(query.toLowerCase())));
  const changes=rows.filter(a=>!saved.includes(a.id)&&JSON.stringify(values(a))!==JSON.stringify(draft[a.id]));
  function start(){setOpen(true);setQuery('');setSelected([]);setRows([]);setDraft({});setStage('select');setPage(0);setReason('');setError('');setSaved([])}
  function edit(){const chosen=animals.filter(a=>selected.includes(a.id));setRows(chosen);setDraft(Object.fromEntries(chosen.map(a=>[a.id,values(a)])));setOperations(Object.fromEntries(chosen.map(a=>[a.id,crypto.randomUUID()])));setStage('edit');setPage(0)}
+ useEffect(()=>{if(!entryRequest||disabled||!takeSectionEntry(entryRequest))return;const chosen=animals.filter(a=>entryRequest.ids.includes(a.id));start();setSelected(chosen.map(a=>a.id));setRows(chosen);setDraft(Object.fromEntries(chosen.map(a=>[a.id,values(a)])));setOperations(Object.fromEntries(chosen.map(a=>[a.id,crypto.randomUUID()])));setStage('edit')},[entryRequest?.key]);
  function update(id:string,k:Field,v:string){setDraft(d=>({...d,[id]:fillBirthYear({...d[id],[k]:v})}))}
  async function save(){setBusy(true);setError('');const complete=[...saved];let failure='';for(const a of changes){try{const d=draft[a.id];const r=await fetch('/api/flock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'edit',year,data:{id:a.id,version:a.version,operationId:operations[a.id],reason:reason.trim(),name:d.name,breed:d.breed,sex:d.sex,origin:d.origin,dob:d.dob,birthYear:d.birthYear?Number(d.birthYear):null,info:{generation:d.generation,registry:d.registry,registrationNumber:d.registrationNumber,farm:d.farm,notes:d.notes}}})});const result:any=await r.json();if(!r.ok)throw Error(result.error||'Save failed');complete.push(a.id);setSaved([...complete])}catch(e){failure=label(a)+': '+(e instanceof Error?e.message:'Save failed');break}}setBusy(false);if(failure){setError(`${complete.length} saved. Remaining rows were not confirmed saved. ${failure} Retry to resume, or close and reopen after reloading for a conflict.`)}else{setStage('done')}await onSaved()}
  function input(k:Field,v:string,change:(v:string)=>void){return choices[k]?<select aria-label={fields[k]} value={v} onChange={e=>change(e.target.value)} className="border rounded p-2">{choices[k]!.map(x=><option key={x}>{x}</option>)}</select>:<input list={suggestionList(k)} aria-label={fields[k]} className="border rounded p-2 min-w-40" type={k==='dob'?'date':k==='birthYear'?'number':'text'} value={v} maxLength={k==='notes'?2000:200} onChange={e=>change(e.target.value)}/>}

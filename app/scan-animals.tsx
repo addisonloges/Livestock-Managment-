@@ -1,0 +1,10 @@
+"use client";
+import {useMemo,useRef,useState} from 'react';
+import {type Animal,label,displayId} from '@/lib/livestock';
+import {animalLookupIndex,findAnimals} from '@/lib/animal-lookup';
+import {matchLookupLines} from '@/lib/section-entry';
+export default function ScanAnimals({animals,history=[],selected,onChange,max=200,disabled=false}:{animals:Animal[];history?:any[];selected:string[];onChange:(ids:string[],added:string[])=>void;max?:number;disabled?:boolean}){
+ const [query,setQuery]=useState(''),[error,setError]=useState(''),ref=useRef<HTMLInputElement>(null),index=useMemo(()=>animalLookupIndex(animals,history),[animals,history]),matches=findAnimals(index,query);
+ function add(as:Animal[]){const next=[...new Set([...selected,...as.map(a=>a.id)])];if(next.length>max){setError('This task supports up to '+max+' animals.');return}onChange(next,as.map(a=>a.id));setQuery('');setError('');ref.current?.focus()}
+ return <div className="scan-add-animals"><label>Scan / add animals to this entry<input ref={ref} aria-label="Scan animals for this entry" autoComplete="off" disabled={disabled} value={query} placeholder="EID or tag + Enter; paste a list for mass entry" onChange={e=>{setQuery(e.target.value);setError('')}} onKeyDown={e=>{if(e.key!=='Enter')return;e.preventDefault();e.stopPropagation();if(!query.trim())return;try{add(matchLookupLines(index,query))}catch(err){setError((err as Error).message)}}} onPaste={e=>{const text=e.clipboardData.getData('text/plain');if(!/[\n\t]/.test(text))return;e.preventDefault();try{add(matchLookupLines(index,text))}catch(err){setError((err as Error).message)}}}/></label>{error&&<p role="alert">{error}</p>}{query.trim()&&<div className="flex flex-wrap gap-2">{matches.slice(0,8).map(r=><button disabled={disabled} type="button" key={r.animal.id} onClick={()=>add([r.animal])}>{label(r.animal)} · {displayId(r.animal)}{r.historical?' · Former tag':''}</button>)}</div>}<small>{selected.length} selected. Repeated scans keep one selection. No records are saved by scanning.</small></div>
+}

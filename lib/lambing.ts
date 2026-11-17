@@ -2,7 +2,7 @@ import {type Animal,validDate,validateParentDates,validateAnimal} from './livest
 import {offspring} from './breeding-projects.ts';
 import {type BreedingGroup} from './breeding.ts';
 export type LambEntry={id:string;name:string;sex:string;rightTag:string;leftTag:string;rightTagColor:string;leftTagColor:string;eid:string;outcome:'Alive'|'Stillborn';birthWeight:number|null;unit:'lb'|'kg';cause:string};
-export type Litter={id:string;version:number;species:string;date:string;damId:string;sireId:string;groupId:string;assistance:string;notes:string;lambs:LambEntry[];voided?:boolean;voidedAt?:string;voidSnapshot?:Animal[]};
+export type Litter={preLambingWeightId?:string;id:string;version:number;species:string;date:string;damId:string;sireId:string;groupId:string;assistance:string;notes:string;lambs:LambEntry[];voided?:boolean;voidedAt?:string;voidSnapshot?:Animal[]};
 export const isUuid=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 export function validateLitter(l:Litter,animals:Animal[],groups:BreedingGroup[]){
  if(!isUuid(l.id)||!['Sheep','Goats'].includes(l.species)||!validDate(l.date)||l.date>new Date().toISOString().slice(0,10))throw Error('Choose a valid birth date, not in the future.');

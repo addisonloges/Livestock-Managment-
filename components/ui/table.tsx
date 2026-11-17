@@ -65,7 +65,7 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
   )
 }
 
-function TableHead({ className, ...props }: React.ComponentProps<"th">) {
+function TableHead({ className, children, ...props }: React.ComponentProps<"th">) {
   return (
     <th
       data-slot="table-head"
@@ -74,7 +74,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
         className
       )}
       {...props}
-    />
+    ><div className="worksheet-heading">{children}</div></th>
   )
 }
 
@@ -82,6 +82,8 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
   return (
     <td
       data-slot="table-cell"
+      tabIndex={0}
+      onKeyDown={e=>{if(e.target!==e.currentTarget)return;const cell=e.currentTarget,row=cell.parentElement as HTMLTableRowElement,table=cell.closest('table');if(!table)return;const rows=Array.from(table.querySelectorAll('tbody tr')),r=rows.indexOf(row),c=cell.cellIndex;let target:HTMLTableCellElement|undefined;if(e.key==='ArrowRight')target=row.cells[c+1];if(e.key==='ArrowLeft')target=row.cells[c-1];if(e.key==='ArrowDown')target=(rows[r+1] as HTMLTableRowElement)?.cells[c];if(e.key==='ArrowUp')target=(rows[r-1] as HTMLTableRowElement)?.cells[c];if(target){e.preventDefault();target.focus()}}}
       className={cn(
         "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         className

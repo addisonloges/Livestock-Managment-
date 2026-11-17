@@ -7,7 +7,7 @@ import {useEffect,useRef,useState} from 'react';
 import {localStore,type PendingChange} from '@/lib/offline-store';
 import {Button} from '@/components/ui/button';
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '@/components/ui/dialog';
-const readable=new Set(['/api/flock','/api/flock/events','/api/flock/breeding','/api/flock/lambing','/api/flock/projects','/api/flock/settings','/api/flock/report-presets','/api/flock/contacts']);
+const readable=new Set(['/api/flock/reader','/api/flock','/api/flock/events','/api/flock/breeding','/api/flock/lambing','/api/flock/projects','/api/flock/settings','/api/flock/report-presets','/api/flock/contacts']);
 const writable=new Set([...readable,'/api/flock/weights','/api/flock/weight-sessions','/api/flock/ownership','/api/flock/import','/api/flock/pedigree-import','/api/flock/custom-values','/api/flock/evaluation-import']);
 export default function OfflineSync(){
  const author=useRef<string>('');

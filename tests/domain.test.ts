@@ -12,7 +12,7 @@ test('unowned ancestors stay out of flock summaries but contribute to COI',()=>{
  const animals=family.map(a=>({...a,pedigreeOnly:1}));
  assert.equal(animals.filter(isFlockAnimal).length,0);
  assert.equal(projectedCoi(relationshipMatrix(animals),'cousin1','cousin2'),.0625);
- assert.deepEqual(ancestorInfo({farm:' Farm ',registry:'R',registrationNumber:'123'}),{farm:'Farm',registry:'R',registrationNumber:'123',notes:''});
+ assert.deepEqual(ancestorInfo({generation:' F2 ',farm:' Farm ',registry:'R',registrationNumber:'123'}),{generation:'F2',farm:'Farm',registry:'R',registrationNumber:'123',notes:''});
  assert.throws(()=>ancestorInfo({notes:'x'.repeat(2001)}));
 });
 test('partial birth information cannot reverse parent chronology',()=>{
